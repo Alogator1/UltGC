@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 
 export default function MunchkinScreen() {
+  const { theme } = useTheme();
   const [players, setPlayers] = useState([
-    { id: 1, name: 'Player 1', level: 1, gear: 0, curses: 0 },
-    { id: 2, name: 'Player 2', level: 1, gear: 0, curses: 0 },
-    { id: 3, name: 'Player 3', level: 1, gear: 0, curses: 0 },
-    { id: 4, name: 'Player 4', level: 1, gear: 0, curses: 0 },
+    { id: 1, name: DEFAULT_PLAYER_NAMES[0], level: 1, gear: 0, curses: 0 },
+    { id: 2, name: DEFAULT_PLAYER_NAMES[1], level: 1, gear: 0, curses: 0 },
+    { id: 3, name: DEFAULT_PLAYER_NAMES[2], level: 1, gear: 0, curses: 0 },
+    { id: 4, name: DEFAULT_PLAYER_NAMES[3], level: 1, gear: 0, curses: 0 },
   ]);
   const [editingId, setEditingId] = useState(null);
   const [showWinner, setShowWinner] = useState(false);
@@ -306,38 +309,39 @@ export default function MunchkinScreen() {
   }, [players]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Munchkin Level Tracker</Text>
-          <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Munchkin Level Tracker</Text>
+          <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.colors.danger }]} onPress={resetGame}>
             <Text style={styles.resetButtonText}>Reset Game</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.battleButton} onPress={startBattle}>
+        <TouchableOpacity style={[styles.battleButton, { backgroundColor: theme.colors.warning }]} onPress={startBattle}>
           <Text style={styles.battleButtonText}>⚔️ Battle Mode</Text>
         </TouchableOpacity>
 
         <View style={styles.playersSection}>
           {players.map(player => (
-            <View key={player.id} style={styles.playerCard}>
+            <View key={player.id} style={[styles.playerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
               <View style={styles.playerHeader}>
                 {editingId === player.id ? (
                   <TextInput
-                    style={styles.nameInput}
+                    style={[styles.nameInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
                     value={player.name}
                     onChangeText={(text) => updateName(player.id, text)}
                     onBlur={() => setEditingId(null)}
                     autoFocus
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                 ) : (
                   <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                    <Text style={styles.playerName}>{player.name}</Text>
+                    <Text style={[styles.playerName, { color: theme.colors.text }]}>{player.name}</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
-                  style={styles.removeButton}
+                  style={[styles.removeButton, { backgroundColor: theme.colors.danger }]}
                   onPress={() => removePlayer(player.id)}
                 >
                   <Text style={styles.removeButtonText}>×</Text>
@@ -346,38 +350,38 @@ export default function MunchkinScreen() {
 
               <View style={styles.levelContainer}>
                 <TouchableOpacity
-                  style={styles.levelButton}
+                  style={[styles.levelButton, { backgroundColor: theme.colors.primary }]}
                   onPress={() => updateLevel(player.id, -1)}
                 >
                   <Text style={styles.levelButtonText}>−</Text>
                 </TouchableOpacity>
 
                 <View style={styles.levelDisplay}>
-                  <Text style={styles.levelLabel}>Level</Text>
-                  <Text style={styles.levelNumber}>{player.level}</Text>
+                  <Text style={[styles.levelLabel, { color: theme.colors.textSecondary }]}>Level</Text>
+                  <Text style={[styles.levelNumber, { color: theme.colors.primary }]}>{player.level}</Text>
                 </View>
 
                 <TouchableOpacity
-                  style={styles.levelButton}
+                  style={[styles.levelButton, { backgroundColor: theme.colors.primary }]}
                   onPress={() => updateLevel(player.id, 1)}
                 >
                   <Text style={styles.levelButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.statsRow}>
+              <View style={[styles.statsRow, { borderTopColor: theme.colors.border }]}>
                 <View style={styles.statContainer}>
-                  <Text style={styles.statLabel}>Gear</Text>
+                  <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Gear</Text>
                   <View style={styles.statControls}>
                     <TouchableOpacity
-                      style={styles.smallButton}
+                      style={[styles.smallButton, { backgroundColor: theme.colors.primary }]}
                       onPress={() => updateGear(player.id, -1)}
                     >
                       <Text style={styles.smallButtonText}>−</Text>
                     </TouchableOpacity>
-                    <Text style={styles.statValue}>{player.gear}</Text>
+                    <Text style={[styles.statValue, { color: theme.colors.text }]}>{player.gear}</Text>
                     <TouchableOpacity
-                      style={styles.smallButton}
+                      style={[styles.smallButton, { backgroundColor: theme.colors.primary }]}
                       onPress={() => updateGear(player.id, 1)}
                     >
                       <Text style={styles.smallButtonText}>+</Text>
@@ -386,21 +390,21 @@ export default function MunchkinScreen() {
                 </View>
               </View>
 
-              <View style={styles.combatStrength}>
-                <Text style={styles.combatLabel}>Combat Strength:</Text>
-                <Text style={styles.combatValue}>{player.level + player.gear}</Text>
+              <View style={[styles.combatStrength, { borderTopColor: theme.colors.border }]}>
+                <Text style={[styles.combatLabel, { color: theme.colors.textSecondary }]}>Combat Strength:</Text>
+                <Text style={[styles.combatValue, { color: theme.colors.warning }]}>{player.level + player.gear}</Text>
               </View>
             </View>
           ))}
 
-          <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.success }]} onPress={addPlayer}>
             <Text style={styles.addButtonText}>+ Add Player</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Game Info</Text>
-          <Text style={styles.text}>
+        <View style={[styles.infoSection, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Game Info</Text>
+          <Text style={[styles.text, { color: theme.colors.textSecondary }]}>
             • First to Level 10 wins!{'\n'}
             • Combat Strength = Level + Gear{'\n'}
             • Use Battle Mode to calculate fights{'\n'}
@@ -421,21 +425,21 @@ export default function MunchkinScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardAvoidingView}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.battleModal}>
-              <Text style={styles.battleTitle}>⚔️ Battle Mode</Text>
+          <View style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+            <View style={[styles.battleModal, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.battleTitle, { color: theme.colors.warning }]}>⚔️ Battle Mode</Text>
 
               {battleStep === 'selectPlayer' && (
                 <ScrollView style={styles.battleScrollView}>
-                  <Text style={styles.battleSectionTitle}>Select Player for Battle:</Text>
+                  <Text style={[styles.battleSectionTitle, { color: theme.colors.text }]}>Select Player for Battle:</Text>
                   {players.map(player => (
                     <TouchableOpacity
                       key={player.id}
-                      style={styles.playerSelectButton}
+                      style={[styles.playerSelectButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.primary }]}
                       onPress={() => selectPlayerForBattle(player)}
                     >
-                      <Text style={styles.playerSelectName}>{player.name}</Text>
-                      <Text style={styles.playerSelectStrength}>
+                      <Text style={[styles.playerSelectName, { color: theme.colors.text }]}>{player.name}</Text>
+                      <Text style={[styles.playerSelectStrength, { color: theme.colors.primary }]}>
                         Strength: {player.level + player.gear}
                       </Text>
                     </TouchableOpacity>
@@ -445,11 +449,12 @@ export default function MunchkinScreen() {
 
               {battleStep === 'enterMonster' && (
                 <View style={styles.monsterInputContainer}>
-                  <Text style={styles.battleSectionTitle}>Enter Monster Strength:</Text>
+                  <Text style={[styles.battleSectionTitle, { color: theme.colors.text }]}>Enter Monster Strength:</Text>
                   <TextInput
                     ref={monsterInputRef}
-                    style={styles.monsterInput}
+                    style={[styles.monsterInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.warning }]}
                     placeholder="Enter monster strength"
+                    placeholderTextColor={theme.colors.textTertiary}
                     keyboardType="numeric"
                     value={monsterStrengthInput}
                     onChangeText={setMonsterStrengthInput}
@@ -459,13 +464,13 @@ export default function MunchkinScreen() {
                   />
                   <View style={styles.monsterButtonsRow}>
                     <TouchableOpacity
-                      style={styles.backButton}
+                      style={[styles.backButton, { backgroundColor: theme.colors.textSecondary }]}
                       onPress={() => setBattleStep('selectPlayer')}
                     >
                       <Text style={styles.backButtonText}>← Back</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={styles.continueButton}
+                      style={[styles.continueButton, { backgroundColor: theme.colors.success }]}
                       onPress={addMonsterToBattle}
                     >
                       <Text style={styles.continueButtonText}>Continue →</Text>
@@ -478,11 +483,11 @@ export default function MunchkinScreen() {
               <ScrollView style={styles.battleScrollView}>
                 {/* Players Side */}
                 <View style={styles.battleSide}>
-                  <Text style={styles.sideTitle}>👥 Players</Text>
+                  <Text style={[styles.sideTitle, { color: theme.colors.text }]}>👥 Players</Text>
                   {battle.players.map(player => (
-                    <View key={player.playerId} style={styles.battleEntity}>
+                    <View key={player.playerId} style={[styles.battleEntity, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                       <View style={styles.entityHeader}>
-                        <Text style={styles.entityName}>{player.name}</Text>
+                        <Text style={[styles.entityName, { color: theme.colors.text }]}>{player.name}</Text>
                         {battle.players.length > 1 && (
                           <TouchableOpacity
                             style={styles.removeEntityButton}
@@ -492,17 +497,18 @@ export default function MunchkinScreen() {
                           </TouchableOpacity>
                         )}
                       </View>
-                      <Text style={styles.baseStrength}>Base: {player.baseStrength}</Text>
+                      <Text style={[styles.baseStrength, { color: theme.colors.textSecondary }]}>Base: {player.baseStrength}</Text>
 
                       {player.bonuses.map((bonus, index) => (
                         <View key={index} style={styles.bonusRow}>
-                          <Text style={styles.bonusSign}>{bonus.isNegative ? '-' : '+'}</Text>
+                          <Text style={[styles.bonusSign, { color: theme.colors.text }]}>{bonus.isNegative ? '-' : '+'}</Text>
                           <TextInput
-                            style={styles.bonusInput}
+                            style={[styles.bonusInput, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]}
                             value={bonus.value.toString()}
                             onChangeText={(text) => updatePlayerBonus(player.playerId, index, text)}
                             keyboardType="numeric"
                             placeholder="0"
+                            placeholderTextColor={theme.colors.textTertiary}
                           />
                           <TouchableOpacity
                             style={styles.removeBonusButton}
@@ -515,20 +521,20 @@ export default function MunchkinScreen() {
 
                       <View style={styles.bonusButtons}>
                         <TouchableOpacity
-                          style={[styles.addBonusButton, styles.positiveBonusButton]}
+                          style={[styles.addBonusButton, { backgroundColor: theme.colors.success }]}
                           onPress={() => addBonusToPlayer(player.playerId, 5)}
                         >
                           <Text style={styles.addBonusText}>+ Bonus</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={[styles.addBonusButton, styles.negativeBonusButton]}
+                          style={[styles.addBonusButton, { backgroundColor: theme.colors.warning }]}
                           onPress={() => addBonusToPlayer(player.playerId, -5)}
                         >
                           <Text style={styles.addBonusText}>- Penalty</Text>
                         </TouchableOpacity>
                       </View>
 
-                      <Text style={styles.totalStrength}>
+                      <Text style={[styles.totalStrength, { color: theme.colors.primary }]}>
                         Total: {calculateTotalStrength(player)}
                       </Text>
                     </View>
@@ -536,39 +542,39 @@ export default function MunchkinScreen() {
 
                   {players.filter(p => !battle.players.find(bp => bp.playerId === p.id)).length > 0 ? (
                     <View>
-                      <Text style={styles.availablePlayersLabel}>Available Players:</Text>
+                      <Text style={[styles.availablePlayersLabel, { color: theme.colors.text }]}>Available Players:</Text>
                       {players.filter(p => !battle.players.find(bp => bp.playerId === p.id)).map(player => (
                         <TouchableOpacity
                           key={player.id}
-                          style={styles.availablePlayerButton}
+                          style={[styles.availablePlayerButton, { backgroundColor: theme.colors.card, borderLeftColor: theme.colors.primary }]}
                           onPress={() => addPlayerToBattle(player)}
                         >
-                          <Text style={styles.availablePlayerText}>{player.name} (Strength: {player.level + player.gear})</Text>
+                          <Text style={[styles.availablePlayerText, { color: theme.colors.primary }]}>{player.name} (Strength: {player.level + player.gear})</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
                   ) : (
-                    <Text style={styles.noAvailablePlayersText}>All players are in the battle</Text>
+                    <Text style={[styles.noAvailablePlayersText, { color: theme.colors.textTertiary }]}>All players are in the battle</Text>
                   )}
 
-                  <View style={styles.sideTotalContainer}>
-                    <Text style={styles.sideTotalLabel}>Players Total:</Text>
-                    <Text style={styles.sideTotalValue}>{getPlayersTotalStrength()}</Text>
+                  <View style={[styles.sideTotalContainer, { backgroundColor: theme.colors.card }]}>
+                    <Text style={[styles.sideTotalLabel, { color: theme.colors.text }]}>Players Total:</Text>
+                    <Text style={[styles.sideTotalValue, { color: theme.colors.primary }]}>{getPlayersTotalStrength()}</Text>
                   </View>
                 </View>
 
                 {/* VS Divider */}
                 <View style={styles.vsDivider}>
-                  <Text style={styles.vsText}>VS</Text>
+                  <Text style={[styles.vsText, { color: theme.colors.danger }]}>VS</Text>
                 </View>
 
                 {/* Monsters Side */}
                 <View style={styles.battleSide}>
-                  <Text style={styles.sideTitle}>👹 Monsters</Text>
+                  <Text style={[styles.sideTitle, { color: theme.colors.text }]}>👹 Monsters</Text>
                   {battle.monsters.map((monster, monsterIndex) => (
-                    <View key={monster.id} style={styles.battleEntity}>
+                    <View key={monster.id} style={[styles.battleEntity, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                       <View style={styles.entityHeader}>
-                        <Text style={styles.entityName}>Monster {monsterIndex + 1}</Text>
+                        <Text style={[styles.entityName, { color: theme.colors.text }]}>Monster {monsterIndex + 1}</Text>
                         {battle.monsters.length > 1 && (
                           <TouchableOpacity
                             style={styles.removeEntityButton}
@@ -578,17 +584,18 @@ export default function MunchkinScreen() {
                           </TouchableOpacity>
                         )}
                       </View>
-                      <Text style={styles.baseStrength}>Base: {monster.strength}</Text>
+                      <Text style={[styles.baseStrength, { color: theme.colors.textSecondary }]}>Base: {monster.strength}</Text>
 
                       {monster.bonuses.map((bonus, index) => (
                         <View key={index} style={styles.bonusRow}>
-                          <Text style={styles.bonusSign}>{bonus.isNegative ? '-' : '+'}</Text>
+                          <Text style={[styles.bonusSign, { color: theme.colors.text }]}>{bonus.isNegative ? '-' : '+'}</Text>
                           <TextInput
-                            style={styles.bonusInput}
+                            style={[styles.bonusInput, { backgroundColor: theme.colors.surface, color: theme.colors.text, borderColor: theme.colors.border }]}
                             value={bonus.value.toString()}
                             onChangeText={(text) => updateMonsterBonus(monster.id, index, text)}
                             keyboardType="numeric"
                             placeholder="0"
+                            placeholderTextColor={theme.colors.textTertiary}
                           />
                           <TouchableOpacity
                             style={styles.removeBonusButton}
@@ -601,48 +608,48 @@ export default function MunchkinScreen() {
 
                       <View style={styles.bonusButtons}>
                         <TouchableOpacity
-                          style={[styles.addBonusButton, styles.positiveBonusButton]}
+                          style={[styles.addBonusButton, { backgroundColor: theme.colors.success }]}
                           onPress={() => addBonusToMonster(monster.id, 5)}
                         >
                           <Text style={styles.addBonusText}>+ Bonus</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={[styles.addBonusButton, styles.negativeBonusButton]}
+                          style={[styles.addBonusButton, { backgroundColor: theme.colors.warning }]}
                           onPress={() => addBonusToMonster(monster.id, -5)}
                         >
                           <Text style={styles.addBonusText}>- Penalty</Text>
                         </TouchableOpacity>
                       </View>
 
-                      <Text style={styles.totalStrength}>
+                      <Text style={[styles.totalStrength, { color: theme.colors.primary }]}>
                         Total: {calculateTotalStrength(monster)}
                       </Text>
                     </View>
                   ))}
 
                   <TouchableOpacity
-                    style={styles.addEntityButton}
+                    style={[styles.addEntityButton, { backgroundColor: theme.colors.primary }]}
                     onPress={addAnotherMonster}
                   >
                     <Text style={styles.addEntityText}>+ Add Monster</Text>
                   </TouchableOpacity>
 
-                  <View style={styles.sideTotalContainer}>
-                    <Text style={styles.sideTotalLabel}>Monsters Total:</Text>
-                    <Text style={styles.sideTotalValue}>{getMonstersTotalStrength()}</Text>
+                  <View style={[styles.sideTotalContainer, { backgroundColor: theme.colors.card }]}>
+                    <Text style={[styles.sideTotalLabel, { color: theme.colors.text }]}>Monsters Total:</Text>
+                    <Text style={[styles.sideTotalValue, { color: theme.colors.primary }]}>{getMonstersTotalStrength()}</Text>
                   </View>
                 </View>
 
                 {/* Battle Result */}
-                <View style={styles.battleResult}>
-                  <Text style={styles.resultText}>
+                <View style={[styles.battleResult, { backgroundColor: theme.colors.card, borderColor: theme.colors.warning }]}>
+                  <Text style={[styles.resultText, { color: theme.colors.text }]}>
                     {getPlayersTotalStrength() > getMonstersTotalStrength()
                       ? '👥 Players Win!'
                       : getPlayersTotalStrength() < getMonstersTotalStrength()
                       ? '👹 Monsters Win!'
                       : '⚖️ It\'s a Tie!'}
                   </Text>
-                  <Text style={styles.resultDetails}>
+                  <Text style={[styles.resultDetails, { color: theme.colors.textSecondary }]}>
                     {getPlayersTotalStrength()} vs {getMonstersTotalStrength()}
                   </Text>
                 </View>
@@ -650,7 +657,7 @@ export default function MunchkinScreen() {
             )}
 
               <TouchableOpacity
-                style={styles.closeBattleButton}
+                style={[styles.closeBattleButton, { backgroundColor: theme.colors.primary }]}
                 onPress={closeBattle}
               >
                 <Text style={styles.closeBattleButtonText}>Close Battle</Text>
@@ -667,16 +674,16 @@ export default function MunchkinScreen() {
         animationType="fade"
         onRequestClose={() => setShowWinner(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.winnerModal}>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.winnerModal, { backgroundColor: theme.colors.surface }]}>
             <Text style={styles.winnerEmoji}>🎉</Text>
-            <Text style={styles.winnerTitle}>We Have a Winner!</Text>
-            <Text style={styles.winnerName}>{winner?.name}</Text>
-            <Text style={styles.winnerMessage}>has reached Level 10!</Text>
+            <Text style={[styles.winnerTitle, { color: theme.colors.text }]}>We Have a Winner!</Text>
+            <Text style={[styles.winnerName, { color: theme.colors.primary }]}>{winner?.name}</Text>
+            <Text style={[styles.winnerMessage, { color: theme.colors.textSecondary }]}>has reached Level 10!</Text>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.newGameButton}
+                style={[styles.newGameButton, { backgroundColor: theme.colors.success }]}
                 onPress={() => {
                   setShowWinner(false);
                   resetGame();
@@ -685,7 +692,7 @@ export default function MunchkinScreen() {
                 <Text style={styles.newGameButtonText}>New Game</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.closeButton}
+                style={[styles.closeButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setShowWinner(false)}
               >
                 <Text style={styles.closeButtonText}>Close</Text>
@@ -704,7 +711,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     padding: 20,
@@ -716,11 +722,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
     textAlign: 'center',
   },
   resetButton: {
-    backgroundColor: '#FF3B30',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -735,12 +739,10 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   playerCard: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     padding: 15,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   playerHeader: {
     flexDirection: 'row',
@@ -785,7 +787,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -800,16 +801,13 @@ const styles = StyleSheet.create({
   },
   levelLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 5,
   },
   levelNumber: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
   addButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -821,32 +819,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   infoSection: {
-    backgroundColor: '#f9f9f9',
     padding: 15,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
-    color: '#333',
   },
   text: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#666',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   winnerModal: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     padding: 30,
     width: '100%',
@@ -868,20 +860,17 @@ const styles = StyleSheet.create({
   winnerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
     textAlign: 'center',
   },
   winnerName: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#007AFF',
     marginBottom: 8,
     textAlign: 'center',
   },
   winnerMessage: {
     fontSize: 20,
-    color: '#666',
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -892,7 +881,6 @@ const styles = StyleSheet.create({
   },
   newGameButton: {
     flex: 1,
-    backgroundColor: '#34C759',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -904,7 +892,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     flex: 1,
-    backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -915,7 +902,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   battleButton: {
-    backgroundColor: '#FF9500',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -937,14 +923,12 @@ const styles = StyleSheet.create({
     marginTop: 15,
     paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
   },
   statContainer: {
     alignItems: 'center',
   },
   statLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
     fontWeight: '600',
   },
@@ -957,7 +941,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -969,7 +952,6 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     minWidth: 30,
     textAlign: 'center',
   },
@@ -980,21 +962,17 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
     gap: 8,
   },
   combatLabel: {
     fontSize: 16,
-    color: '#666',
     fontWeight: '600',
   },
   combatValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FF9500',
   },
   battleModal: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     padding: 24,
     width: '90%',
@@ -1012,12 +990,10 @@ const styles = StyleSheet.create({
   battleTitle: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#FF9500',
     marginBottom: 20,
     textAlign: 'center',
   },
   battleSection: {
-    backgroundColor: '#f9f9f9',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -1025,7 +1001,6 @@ const styles = StyleSheet.create({
   battleSectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
   },
   battlePlayerRow: {
@@ -1034,31 +1009,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   battlePlayerName: {
     fontSize: 16,
-    color: '#333',
     fontWeight: '600',
   },
   battlePlayerStrength: {
     fontSize: 16,
-    color: '#007AFF',
     fontWeight: 'bold',
   },
   battleInfo: {
-    backgroundColor: '#FFF3E0',
     borderRadius: 8,
     padding: 12,
     marginBottom: 20,
   },
   battleInfoText: {
     fontSize: 14,
-    color: '#E65100',
     lineHeight: 20,
   },
   closeBattleButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -1073,34 +1042,28 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   playerSelectButton: {
-    backgroundColor: '#f0f0f0',
     borderRadius: 10,
     padding: 16,
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: '#007AFF',
   },
   playerSelectName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   playerSelectStrength: {
     fontSize: 14,
-    color: '#007AFF',
   },
   monsterInputContainer: {
     width: '100%',
     paddingVertical: 20,
   },
   monsterInput: {
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     padding: 16,
     fontSize: 18,
     borderWidth: 2,
-    borderColor: '#FF9500',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -1110,7 +1073,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     flex: 1,
-    backgroundColor: '#666',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -1122,7 +1084,6 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     flex: 1,
-    backgroundColor: '#34C759',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -1140,15 +1101,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
     textAlign: 'center',
-    color: '#333',
   },
   battleEntity: {
-    backgroundColor: '#f9f9f9',
     borderRadius: 10,
     padding: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   entityHeader: {
     flexDirection: 'row',
@@ -1159,13 +1117,11 @@ const styles = StyleSheet.create({
   entityName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   removeEntityButton: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1177,7 +1133,6 @@ const styles = StyleSheet.create({
   },
   baseStrength: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   bonusRow: {
@@ -1189,25 +1144,21 @@ const styles = StyleSheet.create({
   bonusSign: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     minWidth: 20,
     textAlign: 'center',
   },
   bonusInput: {
     flex: 1,
-    backgroundColor: '#fff',
     borderRadius: 6,
     padding: 8,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
     textAlign: 'center',
   },
   removeBonusButton: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1229,10 +1180,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   positiveBonusButton: {
-    backgroundColor: '#34C759',
   },
   negativeBonusButton: {
-    backgroundColor: '#FF9500',
   },
   addBonusText: {
     color: '#fff',
@@ -1242,12 +1191,10 @@ const styles = StyleSheet.create({
   totalStrength: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#007AFF',
     textAlign: 'center',
     marginTop: 4,
   },
   addEntityButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -1261,32 +1208,26 @@ const styles = StyleSheet.create({
   availablePlayersLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
     marginTop: 4,
   },
   availablePlayerButton: {
-    backgroundColor: '#E8F4FF',
     borderRadius: 8,
     padding: 10,
     marginBottom: 6,
     borderLeftWidth: 4,
-    borderLeftColor: '#007AFF',
   },
   availablePlayerText: {
     fontSize: 14,
-    color: '#007AFF',
     fontWeight: '500',
   },
   noAvailablePlayersText: {
     fontSize: 14,
-    color: '#999',
     fontStyle: 'italic',
     textAlign: 'center',
     marginVertical: 8,
   },
   sideTotalContainer: {
-    backgroundColor: '#E8F4FF',
     borderRadius: 8,
     padding: 12,
     flexDirection: 'row',
@@ -1296,12 +1237,10 @@ const styles = StyleSheet.create({
   sideTotalLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   sideTotalValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
   vsDivider: {
     alignItems: 'center',
@@ -1310,27 +1249,22 @@ const styles = StyleSheet.create({
   vsText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FF3B30',
   },
   battleResult: {
-    backgroundColor: '#FFF3E0',
     borderRadius: 12,
     padding: 16,
     marginTop: 10,
     marginBottom: 10,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FF9500',
   },
   resultText: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   resultDetails: {
     fontSize: 18,
-    color: '#666',
   },
 });
 

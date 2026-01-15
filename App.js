@@ -5,6 +5,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import GamesScreen from './screens/GamesScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import FAQScreen from './screens/FAQScreen';
@@ -20,11 +22,13 @@ const Tab = createBottomTabNavigator();
 const GamesStack = createNativeStackNavigator();
 
 function GamesStackNavigator() {
+  const { theme } = useTheme();
+  
   return (
     <GamesStack.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#007AFF',
+          backgroundColor: theme.colors.primary,
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -77,6 +81,15 @@ function GamesStackNavigator() {
 }
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  const { theme } = useTheme();
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
@@ -117,11 +130,26 @@ export default function App() {
   return (
     <NavigationContainer>
       <Tab.Navigator
-        screenOptions={{
+        screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarActiveTintColor: '#007AFF',
-          tabBarInactiveTintColor: 'gray',
-        }}
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textTertiary,
+          tabBarStyle: {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.border,
+          },
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+            if (route.name === 'Games') {
+              iconName = focused ? 'game-controller' : 'game-controller-outline';
+            } else if (route.name === 'FAQ') {
+              iconName = focused ? 'help-circle' : 'help-circle-outline';
+            } else if (route.name === 'Settings') {
+              iconName = focused ? 'settings' : 'settings-outline';
+            }
+            return <Ionicons name={iconName} size={size} color={color} />;
+          },
+        })}
       >
         <Tab.Screen
           name="Games"
@@ -137,7 +165,7 @@ export default function App() {
             title: 'FAQ',
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#007AFF',
+              backgroundColor: theme.colors.primary,
             },
             headerTintColor: '#fff',
             headerTitleStyle: {
@@ -152,7 +180,7 @@ export default function App() {
             title: 'Settings',
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#007AFF',
+              backgroundColor: theme.colors.primary,
             },
             headerTintColor: '#fff',
             headerTitleStyle: {

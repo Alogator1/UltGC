@@ -21,14 +21,16 @@ const ROUTE_POINTS = {
   8: 21,
 };
 
-export default function TicketToRideScreen() {
-  const [players, setPlayers] = useState([
-    { id: 1, name: 'Player 1', color: PLAYER_COLORS[0], score: 0 },
-    { id: 2, name: 'Player 2', color: PLAYER_COLORS[1], score: 0 },
-    { id: 3, name: 'Player 3', color: PLAYER_COLORS[2], score: 0 },
-    { id: 4, name: 'Player 4', color: PLAYER_COLORS[3], score: 0 },
-    { id: 5, name: 'Player 5', color: PLAYER_COLORS[4], score: 0 },
+import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 
+export default function TicketToRideScreen() {
+  const { theme } = useTheme();
+  const [players, setPlayers] = useState([
+    { id: 1, name: DEFAULT_PLAYER_NAMES[0], color: PLAYER_COLORS[0], score: 0 },
+    { id: 2, name: DEFAULT_PLAYER_NAMES[1], color: PLAYER_COLORS[1], score: 0 },
+    { id: 3, name: DEFAULT_PLAYER_NAMES[2], color: PLAYER_COLORS[2], score: 0 },
+    { id: 4, name: DEFAULT_PLAYER_NAMES[3], color: PLAYER_COLORS[3], score: 0 },
+    { id: 5, name: DEFAULT_PLAYER_NAMES[4], color: PLAYER_COLORS[4], score: 0 },
   ]);
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -272,7 +274,7 @@ export default function TicketToRideScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Ticket to Ride Scorer</Text>

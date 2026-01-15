@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TextInput } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 import GameCard from '../components/GameCard';
 
 const GAMES = [
@@ -42,6 +43,7 @@ const GAMES = [
 
 export default function GamesScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const { theme } = useTheme();
 
   const filteredGames = GAMES.filter(game => {
     const query = searchQuery.toLowerCase();
@@ -52,16 +54,23 @@ export default function GamesScreen({ navigation }) {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Games</Text>
+        <Text style={[styles.title, { color: theme.colors.text }]}>Games</Text>
 
         <TextInput
-          style={styles.searchInput}
+          style={[
+            styles.searchInput,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.border,
+              color: theme.colors.text,
+            },
+          ]}
           placeholder="Search games..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#999"
+          placeholderTextColor={theme.colors.textTertiary}
         />
 
         {filteredGames.length > 0 ? (
@@ -75,8 +84,8 @@ export default function GamesScreen({ navigation }) {
           ))
         ) : (
           <View style={styles.noResults}>
-            <Text style={styles.noResultsText}>No games found</Text>
-            <Text style={styles.noResultsSubtext}>Try a different search term</Text>
+            <Text style={[styles.noResultsText, { color: theme.colors.textSecondary }]}>No games found</Text>
+            <Text style={[styles.noResultsSubtext, { color: theme.colors.textTertiary }]}>Try a different search term</Text>
           </View>
         )}
       </ScrollView>
@@ -98,13 +107,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   searchInput: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   noResults: {
     alignItems: 'center',
@@ -114,12 +121,10 @@ const styles = StyleSheet.create({
   noResultsText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#666',
     marginBottom: 8,
   },
   noResultsSubtext: {
     fontSize: 14,
-    color: '#999',
   },
 });
 

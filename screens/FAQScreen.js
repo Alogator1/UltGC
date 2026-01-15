@@ -1,9 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export default function FAQScreen() {
+  const { theme } = useTheme();
+  
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Text style={styles.title}>Frequently Asked Questions</Text>
 
       <View style={styles.faqItem}>

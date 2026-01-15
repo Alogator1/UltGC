@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 
 const STORAGE_KEY = 'counterGameData';
 const AUTO_SAVE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 export default function CounterScreen() {
+  const { theme } = useTheme();
   const [players, setPlayers] = useState([
-    { id: 1, name: 'Player 1', score: 0 },
-    { id: 2, name: 'Player 2', score: 0 },
+    { id: 1, name: DEFAULT_PLAYER_NAMES[0], score: 0 },
+    { id: 2, name: DEFAULT_PLAYER_NAMES[1], score: 0 },
   ]);
   const [editingId, setEditingId] = useState(null);
   const [editingScoreId, setEditingScoreId] = useState(null);
@@ -112,10 +115,10 @@ export default function CounterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Score Counter</Text>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Score Counter</Text>
           <TouchableOpacity style={styles.resetButton} onPress={resetScores}>
             <Text style={styles.resetButtonText}>Reset Scores</Text>
           </TouchableOpacity>
@@ -123,11 +126,26 @@ export default function CounterScreen() {
 
         <View style={styles.playersSection}>
           {players.map((player) => (
-            <View key={player.id} style={styles.playerCard}>
+            <View 
+              key={player.id} 
+              style={[
+                styles.playerCard,
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.border,
+                }
+              ]}
+            >
               <View style={styles.playerHeader}>
                 {editingId === player.id ? (
                   <TextInput
-                    style={styles.nameInput}
+                    style={[
+                      styles.nameInput,
+                      {
+                        color: theme.colors.text,
+                        borderBottomColor: theme.colors.primary,
+                      }
+                    ]}
                     value={player.name}
                     onChangeText={(text) => updateName(player.id, text)}
                     onBlur={() => setEditingId(null)}
@@ -135,7 +153,7 @@ export default function CounterScreen() {
                   />
                 ) : (
                   <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                    <Text style={styles.playerName}>{player.name}</Text>
+                    <Text style={[styles.playerName, { color: theme.colors.text }]}>{player.name}</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -155,10 +173,16 @@ export default function CounterScreen() {
                 </TouchableOpacity>
 
                 <View style={styles.scoreDisplay}>
-                  <Text style={styles.scoreLabel}>Score</Text>
+                  <Text style={[styles.scoreLabel, { color: theme.colors.textSecondary }]}>Score</Text>
                   {editingScoreId === player.id ? (
                     <TextInput
-                      style={styles.scoreInput}
+                      style={[
+                        styles.scoreInput,
+                        {
+                          color: theme.colors.primary,
+                          borderBottomColor: theme.colors.primary,
+                        }
+                      ]}
                       value={scoreInput}
                       onChangeText={setScoreInput}
                       onBlur={() => saveScore(player.id)}
@@ -167,7 +191,7 @@ export default function CounterScreen() {
                     />
                   ) : (
                     <TouchableOpacity onPress={() => startEditScore(player.id, player.score)}>
-                      <Text style={styles.scoreNumber}>{player.score}</Text>
+                      <Text style={[styles.scoreNumber, { color: theme.colors.primary }]}>{player.score}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -214,9 +238,9 @@ export default function CounterScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>How to Use</Text>
-          <Text style={styles.text}>
+        <View style={[styles.infoSection, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>How to Use</Text>
+          <Text style={[styles.text, { color: theme.colors.textSecondary }]}>
             • Tap player names to edit them{'\n'}
             • Tap the score number to type a new value{'\n'}
             • Use +/- buttons to adjust scores{'\n'}
@@ -233,7 +257,6 @@ export default function CounterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     padding: 20,
@@ -245,7 +268,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
     textAlign: 'center',
   },
   resetButton: {
@@ -264,12 +286,10 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   playerCard: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     padding: 15,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   playerHeader: {
     flexDirection: 'row',
@@ -280,14 +300,11 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
   },
   nameInput: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
     minWidth: 150,
     padding: 0,
   },
@@ -330,20 +347,16 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 5,
   },
   scoreNumber: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
   scoreInput: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#007AFF',
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
     textAlign: 'center',
     minWidth: 80,
     padding: 0,
@@ -383,21 +396,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   infoSection: {
-    backgroundColor: '#f9f9f9',
     padding: 15,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
-    color: '#333',
   },
   text: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#666',
   },
 });

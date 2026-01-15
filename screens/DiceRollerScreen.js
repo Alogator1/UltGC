@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Animated } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 
 const DICE_TYPES = [2, 3, 4, 6, 8, 10, 12, 20, 100];
 
 export default function DiceRollerScreen() {
+  const { theme } = useTheme();
   const [players, setPlayers] = useState([
-    { id: 1, name: 'Player 1', dice: [], rolls: [] },
+    { id: 1, name: DEFAULT_PLAYER_NAMES[0], dice: [], rolls: [] },
   ]);
   const [nextId, setNextId] = useState(2);
   const [editingId, setEditingId] = useState(null);
@@ -220,27 +223,42 @@ export default function DiceRollerScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Dice Roller</Text>
-          <TouchableOpacity style={styles.clearAllButton} onPress={clearAllRolls}>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>Dice Roller</Text>
+          <TouchableOpacity
+            style={[styles.clearAllButton, { backgroundColor: theme.colors.danger }]}
+            onPress={clearAllRolls}
+          >
             <Text style={styles.clearAllButtonText}>Clear All</Text>
           </TouchableOpacity>
         </View>
 
         {/* Roll All Players Button */}
-        <TouchableOpacity style={styles.rollAllPlayersButton} onPress={rollAllPlayers}>
+        <TouchableOpacity
+          style={[styles.rollAllPlayersButton, { backgroundColor: theme.colors.success }]}
+          onPress={rollAllPlayers}
+        >
           <Text style={styles.rollAllPlayersButtonText}>🎲 Roll All Players</Text>
         </TouchableOpacity>
 
         {/* Players */}
         {players.map((player) => (
-          <View key={player.id} style={styles.playerCard}>
+          <View
+            key={player.id}
+            style={[
+              styles.playerCard,
+              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+            ]}
+          >
             <View style={styles.playerHeader}>
               {editingId === player.id ? (
                 <TextInput
-                  style={styles.playerNameInput}
+                  style={[
+                    styles.playerNameInput,
+                    { color: theme.colors.text, borderBottomColor: theme.colors.primary }
+                  ]}
                   value={player.name}
                   onChangeText={(text) => updatePlayerName(player.id, text)}
                   onBlur={() => setEditingId(null)}
@@ -248,11 +266,13 @@ export default function DiceRollerScreen() {
                 />
               ) : (
                 <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                  <Text style={styles.playerName}>{player.name}</Text>
+                  <Text style={[styles.playerName, { color: theme.colors.text }]}>
+                    {player.name}
+                  </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
-                style={styles.deleteButton}
+                style={[styles.deleteButton, { backgroundColor: theme.colors.danger }]}
                 onPress={() => removePlayer(player.id)}
               >
                 <Text style={styles.deleteButtonText}>×</Text>
@@ -264,17 +284,27 @@ export default function DiceRollerScreen() {
               {player.dice.length > 0 ? (
                 <>
                   <View style={styles.diceSectionHeader}>
-                    <Text style={styles.diceSectionTitle}>Selected Dice ({player.dice.length}):</Text>
+                    <Text style={[styles.diceSectionTitle, { color: theme.colors.primary }]}>
+                      Selected Dice ({player.dice.length}):
+                    </Text>
                     <TouchableOpacity
-                      style={styles.clearDiceButton}
+                      style={[styles.clearDiceButton, { backgroundColor: theme.colors.danger }]}
                       onPress={() => clearPlayerDice(player.id)}
                     >
                       <Text style={styles.clearDiceButtonText}>Clear</Text>
                     </TouchableOpacity>
                   </View>
-                  <View style={styles.playerDiceList}>
+                  <View
+                    style={[
+                      styles.playerDiceList,
+                      { backgroundColor: theme.colors.card, borderColor: theme.colors.primary }
+                    ]}
+                  >
                     {player.dice.map((dice) => (
-                      <View key={dice.id} style={styles.diceChip}>
+                      <View
+                        key={dice.id}
+                        style={[styles.diceChip, { backgroundColor: theme.colors.primary }]}
+                      >
                         <Text style={styles.diceChipText}>d{dice.type}</Text>
                         <TouchableOpacity
                           style={styles.removeDiceButton}
@@ -287,17 +317,22 @@ export default function DiceRollerScreen() {
                   </View>
                 </>
               ) : (
-                <Text style={styles.noDiceText}>Tap dice below to add</Text>
+                <Text style={[styles.noDiceText, { color: theme.colors.textSecondary }]}>
+                  Tap dice below to add
+                </Text>
               )}
 
               <View style={styles.diceGrid}>
                 {DICE_TYPES.map(dice => (
                   <TouchableOpacity
                     key={dice}
-                    style={styles.diceButton}
+                    style={[
+                      styles.diceButton,
+                      { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+                    ]}
                     onPress={() => addDiceToPlayer(player.id, dice)}
                   >
-                    <Text style={styles.diceButtonText}>d{dice}</Text>
+                    <Text style={[styles.diceButtonText, { color: theme.colors.primary }]}>d{dice}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -307,9 +342,13 @@ export default function DiceRollerScreen() {
             <TouchableOpacity
               style={[
                 styles.rollButton,
-                player.dice.length === 0 && styles.rollButtonDisabled
+                {
+                  backgroundColor:
+                    player.dice.length === 0 ? theme.colors.border : theme.colors.primary
+                }
               ]}
               onPress={() => rollAllDiceForPlayer(player.id)}
+              disabled={player.dice.length === 0}
             >
               <Text style={styles.rollButtonText}>
                 🎲 Roll All Dice ({player.dice.length})
@@ -318,11 +357,11 @@ export default function DiceRollerScreen() {
 
             {/* Roll History */}
             {player.rolls.length > 0 && (
-              <View style={styles.rollHistory}>
+              <View style={[styles.rollHistory, { borderTopColor: theme.colors.border }]}>
                 <View style={styles.rollHistoryHeader}>
-                  <Text style={styles.rollHistoryTitle}>Recent Rolls:</Text>
+                  <Text style={[styles.rollHistoryTitle, { color: theme.colors.textSecondary }]}>Recent Rolls:</Text>
                   <TouchableOpacity
-                    style={styles.clearHistoryButton}
+                    style={[styles.clearHistoryButton, { backgroundColor: theme.colors.danger }]}
                     onPress={() => clearPlayerRolls(player.id)}
                   >
                     <Text style={styles.clearHistoryButtonText}>Clear</Text>
@@ -334,18 +373,34 @@ export default function DiceRollerScreen() {
                   showsVerticalScrollIndicator={true}
                 >
                   {player.rolls.map((roll) => (
-                    <View key={roll.id} style={styles.rollItem}>
-                      <Text style={styles.rollTime}>{roll.timestamp}</Text>
+                    <View
+                      key={roll.id}
+                      style={[styles.rollItem, { backgroundColor: theme.colors.card }]}
+                    >
+                      <Text style={[styles.rollTime, { color: theme.colors.textSecondary }]}>
+                        {roll.timestamp}
+                      </Text>
                       <View style={styles.rollResults}>
                         <View style={styles.diceResults}>
                           {roll.results.map((result, index) => (
-                            <View key={index} style={styles.diceResultItem}>
-                              <Text style={styles.diceResultType}>d{result.type}</Text>
-                              <Text style={styles.diceResultValue}>{result.result}</Text>
+                            <View
+                              key={index}
+                              style={[
+                                styles.diceResultItem,
+                                {
+                                  backgroundColor: theme.colors.surface,
+                                  borderColor: theme.colors.primary
+                                }
+                              ]}
+                            >
+                              <Text style={[styles.diceResultType, { color: theme.colors.primary }]}>d{result.type}</Text>
+                              <Text style={[styles.diceResultValue, { color: theme.colors.text }]}>
+                                {result.result}
+                              </Text>
                             </View>
                           ))}
                         </View>
-                        <Text style={styles.rollTotal}>= {roll.total}</Text>
+                        <Text style={[styles.rollTotal, { color: theme.colors.success }]}>= {roll.total}</Text>
                       </View>
                     </View>
                   ))}
@@ -355,13 +410,21 @@ export default function DiceRollerScreen() {
           </View>
         ))}
 
-        <TouchableOpacity style={styles.addPlayerButton} onPress={addPlayer}>
+        <TouchableOpacity
+          style={[styles.addPlayerButton, { backgroundColor: theme.colors.primary }]}
+          onPress={addPlayer}
+        >
           <Text style={styles.addPlayerButtonText}>+ Add Player</Text>
         </TouchableOpacity>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>How to Use</Text>
-          <Text style={styles.infoText}>
+        <View
+          style={[
+            styles.infoSection,
+            { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>How to Use</Text>
+          <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
             • Each player can build their own dice set{'\n'}
             • Tap dice types (d2-d100) to add them{'\n'}
             • Selected dice shown in highlighted box{'\n'}
@@ -379,7 +442,6 @@ export default function DiceRollerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     padding: 20,
@@ -393,10 +455,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#5856D6',
   },
   clearAllButton: {
-    backgroundColor: '#FF3B30',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -407,7 +467,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   rollAllPlayersButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -424,7 +483,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   playerCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -433,6 +491,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
   },
   playerHeader: {
     flexDirection: 'row',
@@ -443,14 +502,11 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#333',
   },
   playerNameInput: {
     fontSize: 22,
     fontWeight: '600',
-    color: '#333',
     borderBottomWidth: 2,
-    borderBottomColor: '#5856D6',
     padding: 4,
     minWidth: 150,
   },
@@ -458,7 +514,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -481,10 +536,8 @@ const styles = StyleSheet.create({
   diceSectionTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#5856D6',
   },
   clearDiceButton: {
-    backgroundColor: '#FF3B30',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
@@ -499,16 +552,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
     marginBottom: 10,
-    backgroundColor: '#F0EEFF',
     padding: 10,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#5856D6',
   },
   diceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#5856D6',
     borderRadius: 16,
     paddingVertical: 5,
     paddingLeft: 10,
@@ -536,7 +586,6 @@ const styles = StyleSheet.create({
   },
   noDiceText: {
     fontSize: 13,
-    color: '#999',
     fontStyle: 'italic',
     marginBottom: 8,
   },
@@ -548,28 +597,21 @@ const styles = StyleSheet.create({
   diceButton: {
     width: '18%',
     aspectRatio: 1,
-    backgroundColor: '#f8f8f8',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#ddd',
   },
   diceButtonText: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#5856D6',
   },
   rollButton: {
-    backgroundColor: '#5856D6',
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
     marginTop: 10,
     marginBottom: 10,
-  },
-  rollButtonDisabled: {
-    backgroundColor: '#ccc',
   },
   rollButtonText: {
     color: '#fff',
@@ -578,7 +620,6 @@ const styles = StyleSheet.create({
   },
   rollHistory: {
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
     paddingTop: 12,
   },
   rollHistoryHeader: {
@@ -593,10 +634,8 @@ const styles = StyleSheet.create({
   rollHistoryTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
   },
   clearHistoryButton: {
-    backgroundColor: '#FF3B30',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
@@ -607,14 +646,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   rollItem: {
-    backgroundColor: '#f9f9f9',
     borderRadius: 8,
     padding: 10,
     marginBottom: 6,
   },
   rollTime: {
     fontSize: 12,
-    color: '#999',
     marginBottom: 6,
   },
   rollResults: {
@@ -629,34 +666,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   diceResultItem: {
-    backgroundColor: '#fff',
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: '#5856D6',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
   diceResultType: {
     fontSize: 10,
-    color: '#5856D6',
     fontWeight: 'bold',
   },
   diceResultValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   rollTotal: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#34C759',
     marginLeft: 10,
   },
   addPlayerButton: {
-    backgroundColor: '#5856D6',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -673,21 +704,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   infoSection: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
+    borderWidth: 1,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#333',
   },
   infoText: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#666',
   },
 });
 

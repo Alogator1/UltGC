@@ -1,18 +1,29 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 export default function GameCard({ name, description, onPress }) {
+  const { theme } = useTheme();
+  
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <Text style={styles.name}>{name}</Text>
-      <Text style={styles.description}>{description}</Text>
+    <TouchableOpacity 
+      style={[
+        styles.card, 
+        { 
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.border,
+        }
+      ]} 
+      onPress={onPress}
+    >
+      <Text style={[styles.name, { color: theme.colors.text }]}>{name}</Text>
+      <Text style={[styles.description, { color: theme.colors.textSecondary }]}>{description}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
     marginBottom: 12,
@@ -22,17 +33,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   name: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333',
   },
   description: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
   },
 });

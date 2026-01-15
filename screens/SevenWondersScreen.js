@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 
 const STORAGE_KEY = 'sevenWondersGameData';
 const PLAYER_COLORS = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C', '#E67E22'];
 
 export default function SevenWondersScreen() {
+  const { theme } = useTheme();
   const [players, setPlayers] = useState([
     {
       id: 1,
-      name: 'Player 1',
+      name: DEFAULT_PLAYER_NAMES[0],
       color: PLAYER_COLORS[0],
       military: 0,
       treasury: 0,
@@ -181,34 +184,35 @@ export default function SevenWondersScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>🏛️ 7 Wonders Scorer</Text>
-          <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>🏛️ 7 Wonders Scorer</Text>
+          <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.colors.danger }]} onPress={resetGame}>
             <Text style={styles.resetButtonText}>Reset Game</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.playersSection}>
           {players.map((player) => (
-            <View key={player.id} style={[styles.playerCard, { borderLeftColor: player.color, borderLeftWidth: 6 }]}>
+            <View key={player.id} style={[styles.playerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderLeftColor: player.color, borderLeftWidth: 6 }]}>
               <View style={styles.playerHeader}>
                 {editingId === player.id ? (
                   <TextInput
-                    style={styles.nameInput}
+                    style={[styles.nameInput, { color: theme.colors.text, borderBottomColor: theme.colors.primary }]}
                     value={player.name}
                     onChangeText={(text) => updatePlayerName(player.id, text)}
                     onBlur={() => setEditingId(null)}
                     autoFocus
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                 ) : (
                   <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                    <Text style={styles.playerName}>{player.name}</Text>
+                    <Text style={[styles.playerName, { color: theme.colors.text }]}>{player.name}</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
-                  style={styles.removeButton}
+                  style={[styles.removeButton, { backgroundColor: theme.colors.danger }]}
                   onPress={() => removePlayer(player.id)}
                 >
                   <Text style={styles.removeButtonText}>×</Text>
@@ -216,22 +220,23 @@ export default function SevenWondersScreen() {
               </View>
 
               <View style={styles.scoreRow}>
-                <Text style={styles.scoreLabel}>⚔️ Military</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.text }]}>⚔️ Military</Text>
                 <View style={styles.scoreControls}>
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'military', -1)}
                   >
                     <Text style={styles.adjustButtonText}>−</Text>
                   </TouchableOpacity>
                   <TextInput
-                    style={styles.scoreInput}
+                    style={[styles.scoreInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
                     value={player.military.toString()}
                     onChangeText={(text) => updateScore(player.id, 'military', text)}
                     keyboardType="numeric"
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'military', 1)}
                   >
                     <Text style={styles.adjustButtonText}>+</Text>
@@ -240,22 +245,23 @@ export default function SevenWondersScreen() {
               </View>
 
               <View style={styles.scoreRow}>
-                <Text style={styles.scoreLabel}>💰 Treasury (÷3)</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.text }]}>💰 Treasury (÷3)</Text>
                 <View style={styles.scoreControls}>
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'treasury', -1)}
                   >
                     <Text style={styles.adjustButtonText}>−</Text>
                   </TouchableOpacity>
                   <TextInput
-                    style={styles.scoreInput}
+                    style={[styles.scoreInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
                     value={player.treasury.toString()}
                     onChangeText={(text) => updateScore(player.id, 'treasury', text)}
                     keyboardType="numeric"
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'treasury', 1)}
                   >
                     <Text style={styles.adjustButtonText}>+</Text>
@@ -264,22 +270,23 @@ export default function SevenWondersScreen() {
               </View>
 
               <View style={styles.scoreRow}>
-                <Text style={styles.scoreLabel}>🏗️ Wonder</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.text }]}>🏗️ Wonder</Text>
                 <View style={styles.scoreControls}>
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'wonder', -1)}
                   >
                     <Text style={styles.adjustButtonText}>−</Text>
                   </TouchableOpacity>
                   <TextInput
-                    style={styles.scoreInput}
+                    style={[styles.scoreInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
                     value={player.wonder.toString()}
                     onChangeText={(text) => updateScore(player.id, 'wonder', text)}
                     keyboardType="numeric"
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'wonder', 1)}
                   >
                     <Text style={styles.adjustButtonText}>+</Text>
@@ -288,22 +295,23 @@ export default function SevenWondersScreen() {
               </View>
 
               <View style={styles.scoreRow}>
-                <Text style={styles.scoreLabel}>🏘️ Civilian</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.text }]}>🏘️ Civilian</Text>
                 <View style={styles.scoreControls}>
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'civilian', -1)}
                   >
                     <Text style={styles.adjustButtonText}>−</Text>
                   </TouchableOpacity>
                   <TextInput
-                    style={styles.scoreInput}
+                    style={[styles.scoreInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
                     value={player.civilian.toString()}
                     onChangeText={(text) => updateScore(player.id, 'civilian', text)}
                     keyboardType="numeric"
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'civilian', 1)}
                   >
                     <Text style={styles.adjustButtonText}>+</Text>
@@ -311,100 +319,103 @@ export default function SevenWondersScreen() {
                 </View>
               </View>
 
-              <View style={styles.scienceSection}>
-                <Text style={styles.scienceTitle}>🔬 Science</Text>
-                <View style={styles.scienceRow}>
-                  <View style={styles.scienceItem}>
-                    <Text style={styles.scienceLabel}>🧭 Compass</Text>
-                    <View style={styles.scienceControls}>
-                      <TouchableOpacity
-                        style={styles.scienceButton}
-                        onPress={() => adjustScience(player.id, 'compass', -1)}
-                      >
-                        <Text style={styles.scienceButtonText}>−</Text>
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.scienceInput}
-                        value={player.science.compass.toString()}
-                        onChangeText={(text) => updateScience(player.id, 'compass', text)}
-                        keyboardType="numeric"
-                      />
-                      <TouchableOpacity
-                        style={styles.scienceButton}
-                        onPress={() => adjustScience(player.id, 'compass', 1)}
-                      >
-                        <Text style={styles.scienceButtonText}>+</Text>
-                      </TouchableOpacity>
-                    </View>
+              <View style={[styles.scienceSection, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+                <Text style={[styles.scienceTitle, { color: theme.colors.text }]}>🔬 Science</Text>
+                
+                <View style={styles.scienceItemRow}>
+                  <Text style={[styles.scienceLabel, { color: theme.colors.textSecondary }]}>🧭 Compass</Text>
+                  <View style={styles.scienceControls}>
+                    <TouchableOpacity
+                      style={[styles.scienceButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => adjustScience(player.id, 'compass', -1)}
+                    >
+                      <Text style={styles.scienceButtonText}>−</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={[styles.scienceInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
+                      value={player.science.compass.toString()}
+                      onChangeText={(text) => updateScience(player.id, 'compass', text)}
+                      keyboardType="numeric"
+                      placeholderTextColor={theme.colors.textTertiary}
+                    />
+                    <TouchableOpacity
+                      style={[styles.scienceButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => adjustScience(player.id, 'compass', 1)}
+                    >
+                      <Text style={styles.scienceButtonText}>+</Text>
+                    </TouchableOpacity>
                   </View>
+                </View>
 
-                  <View style={styles.scienceItem}>
-                    <Text style={styles.scienceLabel}>⚙️ Gear</Text>
-                    <View style={styles.scienceControls}>
-                      <TouchableOpacity
-                        style={styles.scienceButton}
-                        onPress={() => adjustScience(player.id, 'gear', -1)}
-                      >
-                        <Text style={styles.scienceButtonText}>−</Text>
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.scienceInput}
-                        value={player.science.gear.toString()}
-                        onChangeText={(text) => updateScience(player.id, 'gear', text)}
-                        keyboardType="numeric"
-                      />
-                      <TouchableOpacity
-                        style={styles.scienceButton}
-                        onPress={() => adjustScience(player.id, 'gear', 1)}
-                      >
-                        <Text style={styles.scienceButtonText}>+</Text>
-                      </TouchableOpacity>
-                    </View>
+                <View style={styles.scienceItemRow}>
+                  <Text style={[styles.scienceLabel, { color: theme.colors.textSecondary }]}>⚙️ Gear</Text>
+                  <View style={styles.scienceControls}>
+                    <TouchableOpacity
+                      style={[styles.scienceButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => adjustScience(player.id, 'gear', -1)}
+                    >
+                      <Text style={styles.scienceButtonText}>−</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={[styles.scienceInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
+                      value={player.science.gear.toString()}
+                      onChangeText={(text) => updateScience(player.id, 'gear', text)}
+                      keyboardType="numeric"
+                      placeholderTextColor={theme.colors.textTertiary}
+                    />
+                    <TouchableOpacity
+                      style={[styles.scienceButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => adjustScience(player.id, 'gear', 1)}
+                    >
+                      <Text style={styles.scienceButtonText}>+</Text>
+                    </TouchableOpacity>
                   </View>
+                </View>
 
-                  <View style={styles.scienceItem}>
-                    <Text style={styles.scienceLabel}>📜 Tablet</Text>
-                    <View style={styles.scienceControls}>
-                      <TouchableOpacity
-                        style={styles.scienceButton}
-                        onPress={() => adjustScience(player.id, 'tablet', -1)}
-                      >
-                        <Text style={styles.scienceButtonText}>−</Text>
-                      </TouchableOpacity>
-                      <TextInput
-                        style={styles.scienceInput}
-                        value={player.science.tablet.toString()}
-                        onChangeText={(text) => updateScience(player.id, 'tablet', text)}
-                        keyboardType="numeric"
-                      />
-                      <TouchableOpacity
-                        style={styles.scienceButton}
-                        onPress={() => adjustScience(player.id, 'tablet', 1)}
-                      >
-                        <Text style={styles.scienceButtonText}>+</Text>
-                      </TouchableOpacity>
-                    </View>
+                <View style={styles.scienceItemRow}>
+                  <Text style={[styles.scienceLabel, { color: theme.colors.textSecondary }]}>📜 Tablet</Text>
+                  <View style={styles.scienceControls}>
+                    <TouchableOpacity
+                      style={[styles.scienceButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => adjustScience(player.id, 'tablet', -1)}
+                    >
+                      <Text style={styles.scienceButtonText}>−</Text>
+                    </TouchableOpacity>
+                    <TextInput
+                      style={[styles.scienceInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
+                      value={player.science.tablet.toString()}
+                      onChangeText={(text) => updateScience(player.id, 'tablet', text)}
+                      keyboardType="numeric"
+                      placeholderTextColor={theme.colors.textTertiary}
+                    />
+                    <TouchableOpacity
+                      style={[styles.scienceButton, { backgroundColor: theme.colors.primary }]}
+                      onPress={() => adjustScience(player.id, 'tablet', 1)}
+                    >
+                      <Text style={styles.scienceButtonText}>+</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
 
               <View style={styles.scoreRow}>
-                <Text style={styles.scoreLabel}>🏪 Commerce</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.text }]}>🏪 Commerce</Text>
                 <View style={styles.scoreControls}>
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'commerce', -1)}
                   >
                     <Text style={styles.adjustButtonText}>−</Text>
                   </TouchableOpacity>
                   <TextInput
-                    style={styles.scoreInput}
+                    style={[styles.scoreInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
                     value={player.commerce.toString()}
                     onChangeText={(text) => updateScore(player.id, 'commerce', text)}
                     keyboardType="numeric"
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'commerce', 1)}
                   >
                     <Text style={styles.adjustButtonText}>+</Text>
@@ -413,22 +424,23 @@ export default function SevenWondersScreen() {
               </View>
 
               <View style={styles.scoreRow}>
-                <Text style={styles.scoreLabel}>👥 Guilds</Text>
+                <Text style={[styles.scoreLabel, { color: theme.colors.text }]}>👥 Guilds</Text>
                 <View style={styles.scoreControls}>
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'guilds', -1)}
                   >
                     <Text style={styles.adjustButtonText}>−</Text>
                   </TouchableOpacity>
                   <TextInput
-                    style={styles.scoreInput}
+                    style={[styles.scoreInput, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
                     value={player.guilds.toString()}
                     onChangeText={(text) => updateScore(player.id, 'guilds', text)}
                     keyboardType="numeric"
+                    placeholderTextColor={theme.colors.textTertiary}
                   />
                   <TouchableOpacity
-                    style={styles.adjustButton}
+                    style={[styles.adjustButton, { backgroundColor: theme.colors.primary }]}
                     onPress={() => adjustScore(player.id, 'guilds', 1)}
                   >
                     <Text style={styles.adjustButtonText}>+</Text>
@@ -438,18 +450,18 @@ export default function SevenWondersScreen() {
             </View>
           ))}
 
-          <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.success }]} onPress={addPlayer}>
             <Text style={styles.addButtonText}>+ Add Player</Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.calculateButton} onPress={calculateScores}>
+        <TouchableOpacity style={[styles.calculateButton, { backgroundColor: theme.colors.warning }]} onPress={calculateScores}>
           <Text style={styles.calculateButtonText}>🏆 Calculate Final Scores</Text>
         </TouchableOpacity>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>📖 Scoring Guide</Text>
-          <Text style={styles.text}>
+        <View style={[styles.infoSection, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>📖 Scoring Guide</Text>
+          <Text style={[styles.text, { color: theme.colors.textSecondary }]}>
             • ⚔️ Military: Points from conflicts{'\n'}
             • 💰 Treasury: 1 point per 3 coins{'\n'}
             • 🏗️ Wonder: Points from stages{'\n'}
@@ -463,31 +475,31 @@ export default function SevenWondersScreen() {
       </ScrollView>
 
       <Modal visible={results !== null} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.resultsTitle}>🏆 Final Scores</Text>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
+            <Text style={[styles.resultsTitle, { color: theme.colors.text }]}>🏆 Final Scores</Text>
             <ScrollView style={styles.resultsScroll}>
               {results?.map((result, index) => (
-                <View key={result.player.id} style={styles.resultCard}>
+                <View key={result.player.id} style={[styles.resultCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                   <View style={styles.resultHeader}>
-                    <Text style={styles.resultRank}>#{index + 1}</Text>
-                    <Text style={styles.resultName}>{result.player.name}</Text>
-                    <Text style={styles.resultTotal}>{result.total}</Text>
+                    <Text style={[styles.resultRank, { color: theme.colors.primary }]}>#{index + 1}</Text>
+                    <Text style={[styles.resultName, { color: theme.colors.text }]}>{result.player.name}</Text>
+                    <Text style={[styles.resultTotal, { color: theme.colors.success }]}>{result.total}</Text>
                   </View>
                   <View style={styles.breakdown}>
-                    <Text style={styles.breakdownText}>Military: {result.breakdown.military}</Text>
-                    <Text style={styles.breakdownText}>Treasury: {result.breakdown.treasury}</Text>
-                    <Text style={styles.breakdownText}>Wonder: {result.breakdown.wonder}</Text>
-                    <Text style={styles.breakdownText}>Civilian: {result.breakdown.civilian}</Text>
-                    <Text style={styles.breakdownText}>Science: {result.breakdown.science}</Text>
-                    <Text style={styles.breakdownText}>Commerce: {result.breakdown.commerce}</Text>
-                    <Text style={styles.breakdownText}>Guilds: {result.breakdown.guilds}</Text>
+                    <Text style={[styles.breakdownText, { color: theme.colors.textSecondary }]}>Military: {result.breakdown.military}</Text>
+                    <Text style={[styles.breakdownText, { color: theme.colors.textSecondary }]}>Treasury: {result.breakdown.treasury}</Text>
+                    <Text style={[styles.breakdownText, { color: theme.colors.textSecondary }]}>Wonder: {result.breakdown.wonder}</Text>
+                    <Text style={[styles.breakdownText, { color: theme.colors.textSecondary }]}>Civilian: {result.breakdown.civilian}</Text>
+                    <Text style={[styles.breakdownText, { color: theme.colors.textSecondary }]}>Science: {result.breakdown.science}</Text>
+                    <Text style={[styles.breakdownText, { color: theme.colors.textSecondary }]}>Commerce: {result.breakdown.commerce}</Text>
+                    <Text style={[styles.breakdownText, { color: theme.colors.textSecondary }]}>Guilds: {result.breakdown.guilds}</Text>
                   </View>
                 </View>
               ))}
             </ScrollView>
             <TouchableOpacity
-              style={styles.closeButton}
+              style={[styles.closeButton, { backgroundColor: theme.colors.primary }]}
               onPress={() => setResults(null)}
             >
               <Text style={styles.closeButtonText}>Close</Text>
@@ -502,7 +514,6 @@ export default function SevenWondersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     padding: 20,
@@ -514,11 +525,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
     textAlign: 'center',
   },
   resetButton: {
-    backgroundColor: '#FF3B30',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -533,12 +542,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   playerCard: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     padding: 15,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   playerHeader: {
     flexDirection: 'row',
@@ -549,14 +556,11 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
   },
   nameInput: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
     minWidth: 150,
     padding: 0,
   },
@@ -564,7 +568,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#ff3b30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -582,7 +585,6 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 16,
-    color: '#333',
     flex: 1,
     fontWeight: '500',
   },
@@ -595,7 +597,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -605,40 +606,35 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   scoreInput: {
-    backgroundColor: '#fff',
     padding: 8,
     borderRadius: 6,
     width: 50,
     textAlign: 'center',
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   scienceSection: {
-    backgroundColor: '#E8F4FF',
     borderRadius: 8,
     padding: 12,
     marginVertical: 10,
+    borderWidth: 1,
   },
   scienceTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 10,
-    color: '#333',
+    marginBottom: 12,
     textAlign: 'center',
   },
-  scienceRow: {
+  scienceItemRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  scienceItem: {
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 10,
   },
   scienceLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 6,
+    fontSize: 15,
     fontWeight: '500',
+    flex: 1,
   },
   scienceControls: {
     flexDirection: 'row',
@@ -646,10 +642,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   scienceButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#007AFF',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -659,17 +654,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   scienceInput: {
-    backgroundColor: '#fff',
-    padding: 5,
-    borderRadius: 5,
-    width: 36,
+    padding: 8,
+    borderRadius: 6,
+    width: 50,
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   addButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -681,7 +673,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   calculateButton: {
-    backgroundColor: '#FF9500',
     borderRadius: 12,
     padding: 18,
     alignItems: 'center',
@@ -698,31 +689,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   infoSection: {
-    backgroundColor: '#f9f9f9',
     padding: 15,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
-    color: '#333',
   },
   text: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#666',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
     maxHeight: '80%',
@@ -732,18 +717,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 15,
-    color: '#333',
   },
   resultsScroll: {
     maxHeight: 400,
   },
   resultCard: {
-    backgroundColor: '#f5f5f5',
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   resultHeader: {
     flexDirection: 'row',
@@ -754,30 +736,25 @@ const styles = StyleSheet.create({
   resultRank: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
   resultName: {
     fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
     marginLeft: 10,
-    color: '#333',
   },
   resultTotal: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#34C759',
   },
   breakdown: {
     paddingLeft: 10,
   },
   breakdownText: {
     fontSize: 12,
-    color: '#666',
     marginBottom: 2,
   },
   closeButton: {
-    backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 10,
     marginTop: 15,

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 
 export default function UnoScreen() {
+  const { theme } = useTheme();
   const [gameStarted, setGameStarted] = useState(false);
   const [winCondition, setWinCondition] = useState('lowest'); // 'lowest' or 'highest'
   const [targetScore, setTargetScore] = useState('500');
   const [players, setPlayers] = useState([
-    { id: 1, name: 'Player 1', totalScore: 0, roundScore: '' },
-    { id: 2, name: 'Player 2', totalScore: 0, roundScore: '' },
+    { id: 1, name: DEFAULT_PLAYER_NAMES[0], totalScore: 0, roundScore: '' },
+    { id: 2, name: DEFAULT_PLAYER_NAMES[1], totalScore: 0, roundScore: '' },
   ]);
   const [nextId, setNextId] = useState(3);
   const [currentRound, setCurrentRound] = useState(1);
@@ -277,7 +280,7 @@ export default function UnoScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View>

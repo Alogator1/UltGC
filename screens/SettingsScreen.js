@@ -1,8 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 export default function SettingsScreen() {
+  const { isDarkMode, toggleTheme, theme } = useTheme();
   const clearAllData = () => {
     Alert.alert(
       'Clear All Data',
@@ -37,20 +39,31 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView 
+      contentContainerStyle={styles.container}
+      style={{ backgroundColor: theme.colors.background }}
+    >
+      <View style={[styles.section, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Appearance</Text>
+        <View style={[styles.themeToggle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <Text style={[styles.themeLabel, { color: theme.colors.text }]}>Dark Mode</Text>
+          <Switch value={isDarkMode} onValueChange={toggleTheme} />
+        </View>
+      </View>
+
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data Management</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Data Management</Text>
         <TouchableOpacity style={styles.dangerButton} onPress={clearAllData}>
           <Text style={styles.dangerButtonText}>Clear All Game Data</Text>
         </TouchableOpacity>
-        <Text style={styles.helpText}>
+        <Text style={[styles.helpText, { color: theme.colors.textSecondary }]}>
           This will permanently delete all saved game data for all games. This action cannot be undone.
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        <Text style={styles.aboutText}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>About</Text>
+        <Text style={[styles.aboutText, { color: theme.colors.text }]}>
           UltGC - Ultimate Game Companion{'\n'}
           Version 1.0.0{'\n\n'}
           A companion app for tracking scores and game state across multiple popular board games.
@@ -58,8 +71,8 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Auto-Save</Text>
-        <Text style={styles.helpText}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Auto-Save</Text>
+        <Text style={[styles.helpText, { color: theme.colors.textSecondary }]}>
           Game data is automatically saved as you play. If the app is closed for more than 30 minutes,
           saved data will be cleared on next launch.
         </Text>
@@ -79,7 +92,19 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#333',
+  },
+  themeToggle: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  themeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   dangerButton: {
     backgroundColor: '#FF3B30',
@@ -95,12 +120,10 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
   },
   aboutText: {
     fontSize: 14,
-    color: '#333',
     lineHeight: 22,
   },
 });

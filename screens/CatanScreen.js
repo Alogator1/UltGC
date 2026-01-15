@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 
 const STORAGE_KEY = 'catanGameData';
 const PLAYER_COLORS = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C'];
 
 export default function CatanScreen() {
+  const { theme } = useTheme();
   const [players, setPlayers] = useState([
     { id: 1, name: 'Player 1', color: PLAYER_COLORS[0], settlements: 0, cities: 0, devCards: 0, hasLongestRoad: false, hasLargestArmy: false }
   ]);
@@ -156,26 +159,33 @@ export default function CatanScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>🏝️ Catan Tracker</Text>
-          <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>🏝️ Catan Tracker</Text>
+          <TouchableOpacity
+            style={[styles.resetButton, { backgroundColor: theme.colors.danger }]}
+            onPress={resetGame}
+          >
             <Text style={styles.resetButtonText}>Reset Game</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-          style={[styles.diceButton, isRolling && styles.diceButtonRolling]}
+          style={[
+            styles.diceButton,
+            { backgroundColor: theme.colors.primary },
+            isRolling && { backgroundColor: theme.colors.textSecondary }
+          ]}
           onPress={rollDice}
           disabled={isRolling}
         >
           <View style={styles.diceRow}>
-            <View style={styles.dice}>
-              <Text style={styles.diceText}>{diceRoll.dice1}</Text>
+            <View style={[styles.dice, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.diceText, { color: theme.colors.text }]}>{diceRoll.dice1}</Text>
             </View>
-            <View style={styles.dice}>
-              <Text style={styles.diceText}>{diceRoll.dice2}</Text>
+            <View style={[styles.dice, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.diceText, { color: theme.colors.text }]}>{diceRoll.dice2}</Text>
             </View>
           </View>
           <Text style={styles.totalText}>🎲 Total: {diceRoll.total}</Text>
@@ -185,12 +195,26 @@ export default function CatanScreen() {
           {players.map((player) => {
             const vp = calculateVictoryPoints(player);
             return (
-              <View key={player.id} style={[styles.playerCard, { borderLeftColor: player.color, borderLeftWidth: 6 }]}>
+              <View
+                key={player.id}
+                style={[
+                  styles.playerCard,
+                  {
+                    borderLeftColor: player.color,
+                    borderLeftWidth: 6,
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border
+                  }
+                ]}
+              >
                 <View style={styles.playerHeader}>
                   <View style={styles.playerInfo}>
                     {editingId === player.id ? (
                       <TextInput
-                        style={styles.nameInput}
+                        style={[
+                          styles.nameInput,
+                          { color: theme.colors.text, borderBottomColor: theme.colors.primary }
+                        ]}
                         value={player.name}
                         onChangeText={(text) => updatePlayerName(player.id, text)}
                         onBlur={() => setEditingId(null)}
@@ -198,13 +222,17 @@ export default function CatanScreen() {
                       />
                     ) : (
                       <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                        <Text style={styles.playerName}>{player.name}</Text>
+                        <Text style={[styles.playerName, { color: theme.colors.text }]}>
+                          {player.name}
+                        </Text>
                       </TouchableOpacity>
                     )}
-                    <Text style={styles.victoryPoints}>{vp} VP</Text>
+                    <Text style={[styles.victoryPoints, { color: theme.colors.primary }]}>
+                      {vp} VP
+                    </Text>
                   </View>
                   <TouchableOpacity
-                    style={styles.removeButton}
+                    style={[styles.removeButton, { backgroundColor: theme.colors.danger }]}
                     onPress={() => removePlayer(player.id)}
                   >
                     <Text style={styles.removeButtonText}>×</Text>
@@ -213,17 +241,19 @@ export default function CatanScreen() {
 
                 <View style={styles.statsColumn}>
                   <View style={styles.statRow}>
-                    <Text style={styles.statLabel}>🏠 Settlements</Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text }]}>🏠 Settlements</Text>
                     <View style={styles.statControls}>
                       <TouchableOpacity
-                        style={styles.statButton}
+                        style={[styles.statButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => adjustValue(player.id, 'settlements', -1)}
                       >
                         <Text style={styles.statButtonText}>−</Text>
                       </TouchableOpacity>
-                      <Text style={styles.statValue}>{player.settlements}</Text>
+                      <Text style={[styles.statValue, { color: theme.colors.text }]}>
+                        {player.settlements}
+                      </Text>
                       <TouchableOpacity
-                        style={styles.statButton}
+                        style={[styles.statButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => adjustValue(player.id, 'settlements', 1)}
                       >
                         <Text style={styles.statButtonText}>+</Text>
@@ -232,17 +262,19 @@ export default function CatanScreen() {
                   </View>
 
                   <View style={styles.statRow}>
-                    <Text style={styles.statLabel}>🏰 Cities</Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text }]}>🏰 Cities</Text>
                     <View style={styles.statControls}>
                       <TouchableOpacity
-                        style={styles.statButton}
+                        style={[styles.statButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => adjustValue(player.id, 'cities', -1)}
                       >
                         <Text style={styles.statButtonText}>−</Text>
                       </TouchableOpacity>
-                      <Text style={styles.statValue}>{player.cities}</Text>
+                      <Text style={[styles.statValue, { color: theme.colors.text }]}>
+                        {player.cities}
+                      </Text>
                       <TouchableOpacity
-                        style={styles.statButton}
+                        style={[styles.statButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => adjustValue(player.id, 'cities', 1)}
                       >
                         <Text style={styles.statButtonText}>+</Text>
@@ -251,17 +283,19 @@ export default function CatanScreen() {
                   </View>
 
                   <View style={styles.statRow}>
-                    <Text style={styles.statLabel}>🃏 VP Cards</Text>
+                    <Text style={[styles.statLabel, { color: theme.colors.text }]}>🃏 VP Cards</Text>
                     <View style={styles.statControls}>
                       <TouchableOpacity
-                        style={styles.statButton}
+                        style={[styles.statButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => adjustValue(player.id, 'devCards', -1)}
                       >
                         <Text style={styles.statButtonText}>−</Text>
                       </TouchableOpacity>
-                      <Text style={styles.statValue}>{player.devCards}</Text>
+                      <Text style={[styles.statValue, { color: theme.colors.text }]}>
+                        {player.devCards}
+                      </Text>
                       <TouchableOpacity
-                        style={styles.statButton}
+                        style={[styles.statButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => adjustValue(player.id, 'devCards', 1)}
                       >
                         <Text style={styles.statButtonText}>+</Text>
@@ -272,19 +306,51 @@ export default function CatanScreen() {
 
                 <View style={styles.bonusRow}>
                   <TouchableOpacity
-                    style={[styles.bonusButton, player.hasLongestRoad && styles.bonusButtonActive]}
+                    style={[
+                      styles.bonusButton,
+                      {
+                        backgroundColor: theme.colors.card,
+                        borderColor: theme.colors.border
+                      },
+                      player.hasLongestRoad && {
+                        backgroundColor: theme.colors.success,
+                        borderColor: theme.colors.success
+                      }
+                    ]}
                     onPress={() => toggleLongestRoad(player.id)}
                   >
-                    <Text style={[styles.bonusButtonText, player.hasLongestRoad && styles.bonusButtonTextActive]}>
+                    <Text
+                      style={[
+                        styles.bonusButtonText,
+                        { color: theme.colors.textSecondary },
+                        player.hasLongestRoad && { color: theme.colors.text }
+                      ]}
+                    >
                       🛤️ Longest Road {player.hasLongestRoad ? '(+2)' : ''}
                     </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.bonusButton, player.hasLargestArmy && styles.bonusButtonActive]}
+                    style={[
+                      styles.bonusButton,
+                      {
+                        backgroundColor: theme.colors.card,
+                        borderColor: theme.colors.border
+                      },
+                      player.hasLargestArmy && {
+                        backgroundColor: theme.colors.success,
+                        borderColor: theme.colors.success
+                      }
+                    ]}
                     onPress={() => toggleLargestArmy(player.id)}
                   >
-                    <Text style={[styles.bonusButtonText, player.hasLargestArmy && styles.bonusButtonTextActive]}>
+                    <Text
+                      style={[
+                        styles.bonusButtonText,
+                        { color: theme.colors.textSecondary },
+                        player.hasLargestArmy && { color: theme.colors.text }
+                      ]}
+                    >
                       ⚔️ Largest Army {player.hasLargestArmy ? '(+2)' : ''}
                     </Text>
                   </TouchableOpacity>
@@ -293,14 +359,22 @@ export default function CatanScreen() {
             );
           })}
 
-          <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: theme.colors.success }]}
+            onPress={addPlayer}
+          >
             <Text style={styles.addButtonText}>+ Add Player</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>📖 Victory Points</Text>
-          <Text style={styles.text}>
+        <View
+          style={[
+            styles.infoSection,
+            { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+          ]}
+        >
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>📖 Victory Points</Text>
+          <Text style={[styles.text, { color: theme.colors.textSecondary }]}>
             • 🏠 Settlement: 1 VP each{'\n'}
             • 🏰 City: 2 VP each{'\n'}
             • 🃏 VP Development Card: 1 VP each{'\n'}
@@ -313,14 +387,16 @@ export default function CatanScreen() {
       </ScrollView>
 
       <Modal visible={winner !== null} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
             <Text style={styles.winnerEmoji}>🎉</Text>
-            <Text style={styles.winnerTitle}>🏆 Winner!</Text>
-            <Text style={styles.winnerName}>{winner?.name}</Text>
-            <Text style={styles.winnerPoints}>{winner && calculateVictoryPoints(winner)} Victory Points</Text>
+            <Text style={[styles.winnerTitle, { color: theme.colors.text }]}>🏆 Winner!</Text>
+            <Text style={[styles.winnerName, { color: theme.colors.primary }]}>{winner?.name}</Text>
+            <Text style={[styles.winnerPoints, { color: theme.colors.textSecondary }]}>
+              {winner && calculateVictoryPoints(winner)} Victory Points
+            </Text>
             <TouchableOpacity
-              style={styles.closeButton}
+              style={[styles.closeButton, { backgroundColor: theme.colors.primary }]}
               onPress={() => setWinner(null)}
             >
               <Text style={styles.closeButtonText}>Close</Text>
@@ -335,7 +411,6 @@ export default function CatanScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     padding: 20,
@@ -347,11 +422,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
     textAlign: 'center',
   },
   resetButton: {
-    backgroundColor: '#FF3B30',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -363,7 +436,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   diceButton: {
-    backgroundColor: '#007AFF',
     padding: 20,
     borderRadius: 12,
     alignItems: 'center',
@@ -374,9 +446,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  diceButtonRolling: {
-    backgroundColor: '#999',
-  },
   diceRow: {
     flexDirection: 'row',
     gap: 20,
@@ -384,7 +453,6 @@ const styles = StyleSheet.create({
   dice: {
     width: 60,
     height: 60,
-    backgroundColor: '#fff',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -397,7 +465,6 @@ const styles = StyleSheet.create({
   diceText: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
   },
   totalText: {
     fontSize: 18,
@@ -409,12 +476,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   playerCard: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     padding: 15,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   playerHeader: {
     flexDirection: 'row',
@@ -428,28 +493,23 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 4,
   },
   nameInput: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
     marginBottom: 4,
     padding: 0,
   },
   victoryPoints: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
   removeButton: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#ff3b30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -470,7 +530,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 16,
-    color: '#333',
     fontWeight: '500',
   },
   statControls: {
@@ -482,7 +541,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -494,7 +552,6 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     minWidth: 24,
     textAlign: 'center',
   },
@@ -504,27 +561,16 @@ const styles = StyleSheet.create({
   },
   bonusButton: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#e0e0e0',
-  },
-  bonusButtonActive: {
-    backgroundColor: '#34C759',
-    borderColor: '#2DA44E',
   },
   bonusButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
-  },
-  bonusButtonTextActive: {
-    color: '#fff',
   },
   addButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -536,32 +582,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   infoSection: {
-    backgroundColor: '#f9f9f9',
     padding: 15,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
-    color: '#333',
   },
   text: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#666',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
     padding: 30,
     borderRadius: 20,
     alignItems: 'center',
@@ -580,21 +620,17 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
   },
   winnerName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#007AFF',
     marginBottom: 8,
   },
   winnerPoints: {
     fontSize: 18,
-    color: '#666',
     marginBottom: 24,
   },
   closeButton: {
-    backgroundColor: '#007AFF',
     padding: 15,
     borderRadius: 10,
     minWidth: 120,
