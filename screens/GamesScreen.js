@@ -39,6 +39,11 @@ const GAMES = [
     description: 'Classic card-matching game - don\'t forget to say UNO!',
     route: 'Uno',
   },
+  {
+    name: '🎨 Azul',
+    description: 'Beautiful tile-laying game - score walls, avoid penalties',
+    route: 'Azul',
+  },
 ];
 
 export default function GamesScreen({ navigation }) {

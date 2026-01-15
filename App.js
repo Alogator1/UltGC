@@ -17,6 +17,7 @@ import UnoScreen from './screens/UnoScreen';
 import DiceRollerScreen from './screens/DiceRollerScreen';
 import CatanScreen from './screens/CatanScreen';
 import SevenWondersScreen from './screens/SevenWondersScreen';
+import AzulScreen from './screens/AzulScreen';
 
 const Tab = createBottomTabNavigator();
 const GamesStack = createNativeStackNavigator();
@@ -76,6 +77,11 @@ function GamesStackNavigator() {
         component={SevenWondersScreen}
         options={{ title: '7 Wonders' }}
       />
+      <GamesStack.Screen
+        name="Azul"
+        component={AzulScreen}
+        options={{ title: 'Azul' }}
+      />
     </GamesStack.Navigator>
   );
 }
@@ -113,7 +119,7 @@ function AppContent() {
             const timeDiff = Date.now() - parseInt(timestamp);
             // If more than 30 minutes, clear the game data (app was likely terminated)
             if (timeDiff > 30 * 60 * 1000) {
-              AsyncStorage.multiRemove(['ticketToRideGameData', 'munchkinGameData', 'counterGameData', 'unoGameData', 'diceRollerGameData', 'catanGameData', 'sevenWondersGameData']);
+              AsyncStorage.multiRemove(['ticketToRideGameData', 'munchkinGameData', 'counterGameData', 'unoGameData', 'diceRollerGameData', 'catanGameData', 'sevenWondersGameData', 'azulGameData']);
             }
           }
         });
