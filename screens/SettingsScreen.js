@@ -2,9 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, Switch } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../context/SubscriptionContext';
 
 export default function SettingsScreen() {
   const { isDarkMode, toggleTheme, theme } = useTheme();
+  const { isPremium, togglePremium } = useSubscription();
   const clearAllData = () => {
     Alert.alert(
       'Clear All Data',
@@ -43,6 +45,19 @@ export default function SettingsScreen() {
       contentContainerStyle={styles.container}
       style={{ backgroundColor: theme.colors.background }}
     >
+      <View style={[styles.section, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Subscription</Text>
+        <View style={[styles.themeToggle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          <View>
+            <Text style={[styles.themeLabel, { color: theme.colors.text }]}>Premium Mode</Text>
+            <Text style={[styles.toggleSubtext, { color: theme.colors.textSecondary }]}>
+              {isPremium ? 'All games unlocked' : 'Only 4 games available'}
+            </Text>
+          </View>
+          <Switch value={isPremium} onValueChange={togglePremium} />
+        </View>
+      </View>
+
       <View style={[styles.section, { backgroundColor: theme.colors.background }]}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Appearance</Text>
         <View style={[styles.themeToggle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
@@ -105,6 +120,10 @@ const styles = StyleSheet.create({
   themeLabel: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  toggleSubtext: {
+    fontSize: 12,
+    marginTop: 2,
   },
   dangerButton: {
     backgroundColor: '#FF3B30',

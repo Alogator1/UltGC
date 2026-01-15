@@ -1,9 +1,24 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TextInput, Alert } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import GameCard from '../components/GameCard';
+import AdBanner from '../components/AdBanner';
+import { loadInterstitialAd, showInterstitialAd } from '../utils/ads';
+
+const FREE_GAMES_COUNT = 4;
 
 const GAMES = [
+  {
+    name: '👆 Player Selector',
+    description: 'Put thumbs on screen to randomly select a player',
+    route: 'PlayerSelector',
+  },
+  {
+    name: '🔮 Fortune Orb',
+    description: 'Shake or tap to get answers to your questions',
+    route: 'FortuneOrb',
+  },
   {
     name: '🔢 Counter',
     description: 'Fast-paced counting game',
@@ -49,6 +64,26 @@ const GAMES = [
 export default function GamesScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const { theme } = useTheme();
+  const { isPremium } = useSubscription();
+
+  // Load interstitial ad on mount (for free users)
+  useEffect(() => {
+    if (!isPremium) {
+      loadInterstitialAd();
+    }
+  }, [isPremium]);
+
+  // Show interstitial when returning to this screen (from a game)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Only show interstitial sometimes (e.g., 30% chance) to not annoy users
+      if (!isPremium && Math.random() < 0.3) {
+        showInterstitialAd();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, isPremium]);
 
   const filteredGames = GAMES.filter(game => {
     const query = searchQuery.toLowerCase();
@@ -57,6 +92,22 @@ export default function GamesScreen({ navigation }) {
       game.description.toLowerCase().includes(query)
     );
   });
+
+  const handleGamePress = (game) => {
+    const originalIndex = GAMES.findIndex(g => g.route === game.route);
+    if (!isPremium && originalIndex >= FREE_GAMES_COUNT) {
+      Alert.alert(
+        'Premium Required',
+        'This game is only available for premium users. Enable premium in Settings to unlock all games.',
+        [
+          { text: 'OK', style: 'cancel' },
+          { text: 'Go to Settings', onPress: () => navigation.navigate('Settings') },
+        ]
+      );
+      return;
+    }
+    navigation.navigate(game.route);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -79,14 +130,19 @@ export default function GamesScreen({ navigation }) {
         />
 
         {filteredGames.length > 0 ? (
-          filteredGames.map((game) => (
-            <GameCard
-              key={game.route}
-              name={game.name}
-              description={game.description}
-              onPress={() => navigation.navigate(game.route)}
-            />
-          ))
+          filteredGames.map((game) => {
+            const originalIndex = GAMES.findIndex(g => g.route === game.route);
+            const isLocked = !isPremium && originalIndex >= FREE_GAMES_COUNT;
+            return (
+              <GameCard
+                key={game.route}
+                name={isLocked ? `🔒 ${game.name}` : game.name}
+                description={game.description}
+                onPress={() => handleGamePress(game)}
+                locked={isLocked}
+              />
+            );
+          })
         ) : (
           <View style={styles.noResults}>
             <Text style={[styles.noResultsText, { color: theme.colors.textSecondary }]}>No games found</Text>
@@ -94,6 +150,9 @@ export default function GamesScreen({ navigation }) {
           </View>
         )}
       </ScrollView>
+
+      {/* Banner ad at the bottom for free users */}
+      <AdBanner />
     </View>
   );
 }
@@ -105,6 +164,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+    paddingBottom: 70, // Extra space for banner ad
   },
   title: {
     fontSize: 28,
@@ -132,4 +192,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-

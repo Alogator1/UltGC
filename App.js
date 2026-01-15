@@ -7,6 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import GamesScreen from './screens/GamesScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import FAQScreen from './screens/FAQScreen';
@@ -18,6 +19,8 @@ import DiceRollerScreen from './screens/DiceRollerScreen';
 import CatanScreen from './screens/CatanScreen';
 import SevenWondersScreen from './screens/SevenWondersScreen';
 import AzulScreen from './screens/AzulScreen';
+import PlayerSelectorScreen from './screens/PlayerSelectorScreen';
+import Magic8BallScreen from './screens/Magic8BallScreen';
 
 const Tab = createBottomTabNavigator();
 const GamesStack = createNativeStackNavigator();
@@ -82,15 +85,27 @@ function GamesStackNavigator() {
         component={AzulScreen}
         options={{ title: 'Azul' }}
       />
+      <GamesStack.Screen
+        name="PlayerSelector"
+        component={PlayerSelectorScreen}
+        options={{ title: 'Player Selector' }}
+      />
+      <GamesStack.Screen
+        name="FortuneOrb"
+        component={Magic8BallScreen}
+        options={{ title: 'Fortune Orb' }}
+      />
     </GamesStack.Navigator>
   );
 }
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <SubscriptionProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </SubscriptionProvider>
   );
 }
 
