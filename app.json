@@ -10,7 +10,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.ultgc"
+      "bundleIdentifier": "com.groltor.ultgc"
     },
     "android": {
       "adaptiveIcon": {

@@ -27,7 +27,8 @@ export default function FAQScreen() {
           • Munchkin - Level, gear, and battle calculator{'\n'}
           • 7 Wonders - Complete scoring system{'\n'}
           • Ticket to Ride - Route and destination tracking{'\n'}
-          • UNO - Round-based score tracking
+          • UNO - Round-based score tracking{'\n'}
+          • Azul - Wall tiling, floor penalties, end game bonuses
         </Text>
       </View>
 
