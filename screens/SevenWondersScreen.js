@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
+import { STORAGE_KEYS } from '../constants/gameConfig';
+import { SEVEN_WONDERS_COLORS as PLAYER_COLORS } from '../constants/colors';
 
-const STORAGE_KEY = 'sevenWondersGameData';
-const PLAYER_COLORS = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C', '#E67E22'];
+const STORAGE_KEY = STORAGE_KEYS.SEVEN_WONDERS;
 
 export default function SevenWondersScreen() {
   const { theme } = useTheme();

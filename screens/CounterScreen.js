@@ -3,9 +3,9 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
+import { STORAGE_KEYS, AUTO_SAVE_TIMEOUT } from '../constants/gameConfig';
 
-const STORAGE_KEY = 'counterGameData';
-const AUTO_SAVE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+const STORAGE_KEY = STORAGE_KEYS.COUNTER;
 
 export default function CounterScreen() {
   const { theme } = useTheme();

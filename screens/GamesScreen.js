@@ -5,61 +5,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import GameCard from '../components/GameCard';
 import AdBanner from '../components/AdBanner';
 import { loadInterstitialAd, showInterstitialAd } from '../utils/ads';
-
-const FREE_GAMES_COUNT = 4;
-
-const GAMES = [
-  {
-    name: '👆 Player Selector',
-    description: 'Put thumbs on screen to randomly select a player',
-    route: 'PlayerSelector',
-  },
-  {
-    name: '🔮 Fortune Orb',
-    description: 'Shake or tap to get answers to your questions',
-    route: 'FortuneOrb',
-  },
-  {
-    name: '🔢 Counter',
-    description: 'Fast-paced counting game',
-    route: 'Counter',
-  },
-  {
-    name: '🎲 Dice Roller',
-    description: 'Roll multiple dice types for players and track results',
-    route: 'DiceRoller',
-  },
-  {
-    name: '🏝️ Catan',
-    description: 'Settle the island - track victory points, roll dice, and compete for longest road',
-    route: 'Catan',
-  },
-  {
-    name: '⚔️ Munchkin',
-    description: 'Satirical dungeon-crawling card game with backstabbing fun',
-    route: 'Munchkin',
-  },
-  {
-    name: '🏛️ 7 Wonders',
-    description: 'Build your civilization and track points across all categories',
-    route: 'SevenWonders',
-  },
-  {
-    name: '🚂 Ticket to Ride',
-    description: 'Build railway routes across North America',
-    route: 'TicketToRide',
-  },
-  {
-    name: '🎴 UNO',
-    description: 'Classic card-matching game - don\'t forget to say UNO!',
-    route: 'Uno',
-  },
-  {
-    name: '🎨 Azul',
-    description: 'Beautiful tile-laying game - score walls, avoid penalties',
-    route: 'Azul',
-  },
-];
+import { FREE_GAMES_COUNT, GAMES } from '../constants/games';
 
 export default function GamesScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');

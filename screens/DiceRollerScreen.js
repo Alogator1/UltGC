@@ -3,8 +3,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
-
-const DICE_TYPES = [2, 3, 4, 6, 8, 10, 12, 20, 100];
+import { DICE_TYPES } from '../constants/gameConfig';
 
 export default function DiceRollerScreen() {
   const { theme } = useTheme();

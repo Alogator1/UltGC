@@ -21,6 +21,7 @@ import SevenWondersScreen from './screens/SevenWondersScreen';
 import AzulScreen from './screens/AzulScreen';
 import PlayerSelectorScreen from './screens/PlayerSelectorScreen';
 import Magic8BallScreen from './screens/Magic8BallScreen';
+import TicTacToeScreen from './screens/TicTacToeScreen';
 
 const Tab = createBottomTabNavigator();
 const GamesStack = createNativeStackNavigator();
@@ -94,6 +95,11 @@ function GamesStackNavigator() {
         name="FortuneOrb"
         component={Magic8BallScreen}
         options={{ title: 'Fortune Orb' }}
+      />
+      <GamesStack.Screen
+        name="TicTacToe"
+        component={TicTacToeScreen}
+        options={{ title: 'Tic Tac Toe' }}
       />
     </GamesStack.Navigator>
   );

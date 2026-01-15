@@ -2,27 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Animated, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
-
-const PLAYER_COLORS = [
-  { name: 'Blue', color: '#0066CC' },
-  { name: 'Red', color: '#DC143C' },
-  { name: 'Green', color: '#228B22' },
-  { name: 'Yellow', color: '#FFD700' },
-  { name: 'Black', color: '#333333' },
-];
-
-const ROUTE_POINTS = {
-  1: 1,
-  2: 2,
-  3: 4,
-  4: 7,
-  5: 10,
-  6: 15,
-  7: 18,
-  8: 21,
-};
-
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
+import { TICKET_TO_RIDE_COLORS as PLAYER_COLORS } from '../constants/colors';
+import { ROUTE_POINTS } from '../constants/gameConfig';
 
 export default function TicketToRideScreen() {
   const { theme } = useTheme();
