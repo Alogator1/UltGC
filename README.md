@@ -4,18 +4,25 @@ A React Native Expo app for managing and playing various board games with friend
 
 ## Features
 
-- 🎲 Multiple game utilities including:
-  - Counter
-  - Munchkin
-  - Ticket to Ride
-  - Uno
-  - Dice Roller
-  - Catan
-  - Seven Wonders
+- � **10 Game Utilities:**
+  - 👆 **Player Selector** - Random player selection tool
+  - 🔮 **Fortune Orb** (Magic 8 Ball) - Get answers to your questions
+  - 🔢 **Counter** - Simple score tracking
+  - 🎲 **Dice Roller** - Multi-dice roller with history for players
+  - 🏝️ **Catan** - Victory points, dice rolling, longest road tracking
+  - ⚔️ **Munchkin** - Level, gear, and battle calculator
+  - 🏛️ **7 Wonders** - Complete scoring system for all categories
+  - 🚂 **Ticket to Ride** - Route and destination tracking
+  - 🎴 **UNO** - Round-based score tracking
+  - 🎨 **Azul** - Wall tiling, floor penalties, end game bonuses
+- 🎉 **Free to Use** - First 4 games are completely free
+- 💳 **Premium Subscription** - Unlock all games and remove ads
 - 📱 Cross-platform (iOS, Android, Web)
-- 🎨 Bottom tab navigation
-- ⚙️ Settings screen
-- ❓ FAQ screen
+- 🎨 Dark/Light theme support
+- 💾 Auto-save game data locally
+- 🎯 Bottom tab navigation
+- ⚙️ Settings screen with subscription management
+- ❓ Comprehensive FAQ screen
 
 ## Project Structure
 
@@ -92,6 +99,21 @@ npm start
 - **React Navigation** - Navigation library with bottom tabs and stack navigation
 - **AsyncStorage** - Local data persistence
 - **React 19** - Latest React version
+- **Google AdMob** - Ad monetization for free tier
+- **Context API** - State management for theme and subscription
+
+## Monetization Model
+
+### Free Tier
+- Access to 4 games: Player Selector, Fortune Orb, Counter, and Dice Roller
+- Banner ads displayed at bottom of screens
+- Occasional interstitial ads
+
+### Premium Subscription
+- Unlocks all 10 games
+- Complete ad-free experience
+- Support ongoing development
+- One-time or recurring purchase available in Settings
 
 ## Development
 

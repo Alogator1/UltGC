@@ -20,10 +20,12 @@ export default function FAQScreen() {
       <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
         <Text style={[styles.question, { color: theme.colors.primary }]}>What games are supported?</Text>
         <Text style={[styles.answer, { color: theme.colors.text }]}>
-          Currently supports:{'\n'}
+          Currently supports 10 games:{'\n'}
+          • Player Selector - Random player selection tool{'\n'}
+          • Fortune Orb (Magic 8 Ball) - Get answers to your questions{'\n'}
           • Counter - Simple score tracking{'\n'}
-          • Catan - Victory points, dice rolling, longest road{'\n'}
           • Dice Roller - Multi-dice roller with history{'\n'}
+          • Catan - Victory points, dice rolling, longest road{'\n'}
           • Munchkin - Level, gear, and battle calculator{'\n'}
           • 7 Wonders - Complete scoring system{'\n'}
           • Ticket to Ride - Route and destination tracking{'\n'}
@@ -86,7 +88,36 @@ export default function FAQScreen() {
       <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
         <Text style={[styles.question, { color: theme.colors.primary }]}>Is this app free?</Text>
         <Text style={[styles.answer, { color: theme.colors.text }]}>
-          Yes, UltGC is completely free with no ads or in-app purchases.
+          Yes! The app is free with ads. The first 4 games are completely free to use.{' \n\n'}
+          Free users get:{' \n'}
+          • Player Selector{' \n'}
+          • Fortune Orb{' \n'}
+          • Counter{' \n'}
+          • Dice Roller{' \n\n'}
+          Banner ads are displayed at the bottom of screens, and occasional interstitial ads may appear.
+        </Text>
+      </View>
+
+      <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
+        <Text style={[styles.question, { color: theme.colors.primary }]}>What does Premium subscription include?</Text>
+        <Text style={[styles.answer, { color: theme.colors.text }]}>
+          Premium subscription unlocks:{' \n'}
+          • All 10 games (Catan, Munchkin, 7 Wonders, Ticket to Ride, UNO, Azul){' \n'}
+          • No banner ads{' \n'}
+          • No interstitial ads{' \n'}
+          • Support ongoing development{' \n\n'}
+          You can subscribe in the Settings screen. Premium is an optional one-time or recurring purchase.
+        </Text>
+      </View>
+
+      <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
+        <Text style={[styles.question, { color: theme.colors.primary }]}>How do ads work?</Text>
+        <Text style={[styles.answer, { color: theme.colors.text }]}>
+          For free users:{' \n'}
+          • Banner ads appear at the bottom of most screens{' \n'}
+          • Interstitial ads may occasionally show when returning to the games list{' \n'}
+          • Ads are powered by Google AdMob{' \n\n'}
+          Premium users experience no ads at all.
         </Text>
       </View>
     </ScrollView>

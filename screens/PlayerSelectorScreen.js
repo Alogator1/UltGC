@@ -30,15 +30,29 @@ export default function PlayerSelectorScreen() {
   const [selectedId, setSelectedId] = useState(null);
   const countdownTimer = useRef(null);
   const selectionTimer = useRef(null);
+  const flashInterval = useRef(null);
   const pulseAnims = useRef({});
   const scaleAnims = useRef({});
   const touchesRef = useRef({});
 
-  // Cleanup timers on unmount
+  // Cleanup timers, animations, and vibrations on unmount
   useEffect(() => {
     return () => {
+      // Clear all timers
       if (countdownTimer.current) clearInterval(countdownTimer.current);
       if (selectionTimer.current) clearTimeout(selectionTimer.current);
+      if (flashInterval.current) clearInterval(flashInterval.current);
+      
+      // Cancel vibration
+      Vibration.cancel();
+      
+      // Stop all animations
+      Object.values(pulseAnims.current).forEach(anim => {
+        anim.stopAnimation();
+      });
+      Object.values(scaleAnims.current).forEach(anim => {
+        anim.stopAnimation();
+      });
     };
   }, []);
 
@@ -79,13 +93,14 @@ export default function PlayerSelectorScreen() {
 
     // Animate through players rapidly before selecting
     let flashCount = 0;
-    const flashInterval = setInterval(() => {
+    flashInterval.current = setInterval(() => {
       const randomIdx = Math.floor(Math.random() * touchIds.length);
       setSelectedId(touchIds[randomIdx]);
       flashCount++;
 
       if (flashCount >= 10) {
-        clearInterval(flashInterval);
+        clearInterval(flashInterval.current);
+        flashInterval.current = null;
 
         // Final selection
         const finalIdx = Math.floor(Math.random() * touchIds.length);
@@ -118,10 +133,24 @@ export default function PlayerSelectorScreen() {
     setSelectedId(null);
     setTouches({});
     touchesRef.current = {};
+    
+    // Clear all timers
     if (countdownTimer.current) clearInterval(countdownTimer.current);
     if (selectionTimer.current) clearTimeout(selectionTimer.current);
-    // Reset all scale animations
-    Object.values(scaleAnims.current).forEach(anim => anim.setValue(1));
+    if (flashInterval.current) clearInterval(flashInterval.current);
+    
+    // Cancel any ongoing vibration
+    Vibration.cancel();
+    
+    // Reset all animations
+    Object.values(pulseAnims.current).forEach(anim => {
+      anim.stopAnimation();
+      anim.setValue(1);
+    });
+    Object.values(scaleAnims.current).forEach(anim => {
+      anim.stopAnimation();
+      anim.setValue(1);
+    });
   };
 
   const handleTouchStart = (event) => {
