@@ -205,48 +205,57 @@ export default function UnoScreen() {
 
   if (!gameStarted) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.title}>UNO Score Tracker</Text>
 
-          <View style={styles.setupSection}>
-            <Text style={styles.sectionTitle}>Game Setup</Text>
+          <View style={[styles.setupSection, { backgroundColor: theme.colors.card }]}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Game Setup</Text>
 
-            <Text style={styles.label}>Win Condition:</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>Win Condition:</Text>
             <View style={styles.buttonGroup}>
               <TouchableOpacity
-                style={[styles.optionButton, winCondition === 'lowest' && styles.optionButtonActive]}
+                style={[
+                  styles.optionButton,
+                  { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                  winCondition === 'lowest' && [styles.optionButtonActive, { borderColor: '#DC143C', backgroundColor: theme.dark ? '#3d1f1f' : '#FFE8E8' }]
+                ]}
                 onPress={() => setWinCondition('lowest')}
               >
-                <Text style={[styles.optionButtonText, winCondition === 'lowest' && styles.optionButtonTextActive]}>
+                <Text style={[styles.optionButtonText, { color: theme.colors.textSecondary }, winCondition === 'lowest' && styles.optionButtonTextActive]}>
                   Lowest Score Wins
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.optionButton, winCondition === 'highest' && styles.optionButtonActive]}
+                style={[
+                  styles.optionButton,
+                  { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                  winCondition === 'highest' && [styles.optionButtonActive, { borderColor: '#DC143C', backgroundColor: theme.dark ? '#3d1f1f' : '#FFE8E8' }]
+                ]}
                 onPress={() => setWinCondition('highest')}
               >
-                <Text style={[styles.optionButtonText, winCondition === 'highest' && styles.optionButtonTextActive]}>
+                <Text style={[styles.optionButtonText, { color: theme.colors.textSecondary }, winCondition === 'highest' && styles.optionButtonTextActive]}>
                   Highest Score Wins
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Target Score:</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>Target Score:</Text>
             <TextInput
-              style={styles.targetInput}
+              style={[styles.targetInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
               value={targetScore}
               onChangeText={setTargetScore}
               keyboardType="numeric"
               placeholder="Enter target score"
+              placeholderTextColor={theme.colors.textTertiary}
             />
 
-            <Text style={styles.label}>Players:</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>Players:</Text>
             {players.map(player => (
-              <View key={player.id} style={styles.playerSetupCard}>
+              <View key={player.id} style={[styles.playerSetupCard, { backgroundColor: theme.colors.surface }]}>
                 {editingId === player.id ? (
                   <TextInput
-                    style={styles.nameInput}
+                    style={[styles.nameInput, { color: theme.colors.text }]}
                     value={player.name}
                     onChangeText={(text) => updatePlayerName(player.id, text)}
                     onBlur={() => setEditingId(null)}
@@ -254,11 +263,11 @@ export default function UnoScreen() {
                   />
                 ) : (
                   <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                    <Text style={styles.playerSetupName}>{player.name}</Text>
+                    <Text style={[styles.playerSetupName, { color: theme.colors.text }]}>{player.name}</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
-                  style={styles.removeButton}
+                  style={[styles.removeButton, { backgroundColor: theme.colors.danger }]}
                   onPress={() => removePlayer(player.id)}
                 >
                   <Text style={styles.removeButtonText}>×</Text>
@@ -266,7 +275,7 @@ export default function UnoScreen() {
               </View>
             ))}
 
-            <TouchableOpacity style={styles.addPlayerButton} onPress={addPlayer}>
+            <TouchableOpacity style={[styles.addPlayerButton, { backgroundColor: theme.colors.primary }]} onPress={addPlayer}>
               <Text style={styles.addPlayerButtonText}>+ Add Player</Text>
             </TouchableOpacity>
 
@@ -285,16 +294,16 @@ export default function UnoScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>UNO - Round {currentRound}</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
               {winCondition === 'lowest' ? 'Lowest' : 'Highest'} score wins • Target: {targetScore}
             </Text>
           </View>
-          <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
+          <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.colors.danger }]} onPress={resetGame}>
             <Text style={styles.resetButtonText}>Reset</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.tableContainer}>
+        <View style={[styles.tableContainer, { backgroundColor: theme.colors.card }]}>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderText, styles.nameColumn]}>Player</Text>
             <Text style={[styles.tableHeaderText, styles.scoreColumn]}>Total</Text>
@@ -302,40 +311,40 @@ export default function UnoScreen() {
           </View>
 
           {players.map(player => (
-            <View key={player.id} style={styles.tableRow}>
-              <Text style={[styles.tableCellText, styles.nameColumn]}>{player.name}</Text>
+            <View key={player.id} style={[styles.tableRow, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.tableCellText, styles.nameColumn, { color: theme.colors.text }]}>{player.name}</Text>
               <Text style={[styles.tableCellText, styles.scoreColumn, styles.totalScore]}>
                 {player.totalScore}
               </Text>
               <TextInput
-                style={[styles.roundInput, styles.roundColumn]}
+                style={[styles.roundInput, styles.roundColumn, { backgroundColor: theme.dark ? '#2C2C2E' : '#f0f0f0', borderColor: theme.colors.border, color: theme.colors.text }]}
                 value={player.roundScore}
                 onChangeText={(text) => updateRoundScore(player.id, text)}
                 keyboardType="numeric"
                 placeholder="0"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.textTertiary}
               />
             </View>
           ))}
         </View>
 
         {winCondition === 'highest' && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
+          <View style={[styles.infoBox, { backgroundColor: theme.dark ? '#1a2f3d' : '#E8F4FF' }]}>
+            <Text style={[styles.infoText, { color: theme.dark ? '#5DADE2' : '#0066CC' }]}>
               ℹ️ Leave empty or enter 0 for the player who won this round. All other players' points will go to the winner. If multiple players have 0, you'll be asked who won.
             </Text>
           </View>
         )}
 
         {winCondition === 'lowest' && (
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
+          <View style={[styles.infoBox, { backgroundColor: theme.dark ? '#1a2f3d' : '#E8F4FF' }]}>
+            <Text style={[styles.infoText, { color: theme.dark ? '#5DADE2' : '#0066CC' }]}>
               ℹ️ Enter each player's score for this round. Empty cells are treated as 0.
             </Text>
           </View>
         )}
 
-        <TouchableOpacity style={styles.nextRoundButton} onPress={nextRound}>
+        <TouchableOpacity style={[styles.nextRoundButton, { backgroundColor: theme.colors.success }]} onPress={nextRound}>
           <Text style={styles.nextRoundButtonText}>Next Round</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -347,16 +356,16 @@ export default function UnoScreen() {
         animationType="fade"
         onRequestClose={() => setShowWinner(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.winnerModal}>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.winnerModal, { backgroundColor: theme.colors.background }]}>
             <Text style={styles.winnerEmoji}>🎉</Text>
-            <Text style={styles.winnerTitle}>Game Over!</Text>
+            <Text style={[styles.winnerTitle, { color: theme.colors.text }]}>Game Over!</Text>
             <Text style={styles.winnerName}>{winner?.name}</Text>
-            <Text style={styles.winnerMessage}>wins with {winner?.totalScore} points!</Text>
+            <Text style={[styles.winnerMessage, { color: theme.colors.textSecondary }]}>wins with {winner?.totalScore} points!</Text>
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.newGameButton}
+                style={[styles.newGameButton, { backgroundColor: theme.colors.success }]}
                 onPress={() => {
                   setShowWinner(false);
                   resetGame();
@@ -365,7 +374,7 @@ export default function UnoScreen() {
                 <Text style={styles.newGameButtonText}>New Game</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.closeButton}
+                style={[styles.closeButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setShowWinner(false)}
               >
                 <Text style={styles.closeButtonText}>Close</Text>
@@ -381,7 +390,6 @@ export default function UnoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     padding: 20,
@@ -400,10 +408,8 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
   },
   resetButton: {
-    backgroundColor: '#FF3B30',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -414,7 +420,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   setupSection: {
-    backgroundColor: '#f9f9f9',
     borderRadius: 12,
     padding: 20,
   },
@@ -422,14 +427,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#333',
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
     marginTop: 15,
-    color: '#333',
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -438,29 +441,23 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     flex: 1,
-    backgroundColor: '#fff',
     borderWidth: 2,
-    borderColor: '#ddd',
     borderRadius: 10,
     padding: 12,
     alignItems: 'center',
   },
   optionButtonActive: {
     borderColor: '#DC143C',
-    backgroundColor: '#FFE8E8',
   },
   optionButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
   },
   optionButtonTextActive: {
     color: '#DC143C',
   },
   targetInput: {
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -469,18 +466,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
   },
   playerSetupName: {
     fontSize: 16,
-    color: '#333',
   },
   nameInput: {
     fontSize: 16,
-    color: '#333',
     borderBottomWidth: 2,
     borderBottomColor: '#DC143C',
     padding: 0,
@@ -490,7 +484,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -501,7 +494,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   addPlayerButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
@@ -525,7 +517,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   tableContainer: {
-    backgroundColor: '#f9f9f9',
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 15,
@@ -555,40 +546,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
     padding: 12,
-    backgroundColor: '#fff',
   },
   tableCellText: {
     fontSize: 16,
-    color: '#333',
   },
   totalScore: {
     fontWeight: 'bold',
     color: '#DC143C',
   },
   roundInput: {
-    backgroundColor: '#f0f0f0',
     borderRadius: 6,
     padding: 8,
     fontSize: 16,
     textAlign: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   infoBox: {
-    backgroundColor: '#E8F4FF',
     borderRadius: 8,
     padding: 12,
     marginBottom: 15,
   },
   infoText: {
     fontSize: 14,
-    color: '#0066CC',
     lineHeight: 20,
   },
   nextRoundButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -601,13 +584,11 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   winnerModal: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     padding: 30,
     width: '100%',
@@ -629,7 +610,6 @@ const styles = StyleSheet.create({
   winnerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -642,7 +622,6 @@ const styles = StyleSheet.create({
   },
   winnerMessage: {
     fontSize: 20,
-    color: '#666',
     marginBottom: 30,
     textAlign: 'center',
   },
@@ -653,7 +632,6 @@ const styles = StyleSheet.create({
   },
   newGameButton: {
     flex: 1,
-    backgroundColor: '#34C759',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -665,7 +643,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     flex: 1,
-    backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',

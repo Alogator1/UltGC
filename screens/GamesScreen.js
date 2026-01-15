@@ -5,37 +5,37 @@ import GameCard from '../components/GameCard';
 
 const GAMES = [
   {
-    name: 'Counter',
+    name: '🔢 Counter',
     description: 'Fast-paced counting game',
     route: 'Counter',
   },
   {
-    name: 'Dice Roller',
+    name: '🎲 Dice Roller',
     description: 'Roll multiple dice types for players and track results',
     route: 'DiceRoller',
   },
   {
-    name: 'Catan',
+    name: '🏝️ Catan',
     description: 'Settle the island - track victory points, roll dice, and compete for longest road',
     route: 'Catan',
   },
   {
-    name: 'Munchkin',
+    name: '⚔️ Munchkin',
     description: 'Satirical dungeon-crawling card game with backstabbing fun',
     route: 'Munchkin',
   },
   {
-    name: '7 Wonders',
+    name: '🏛️ 7 Wonders',
     description: 'Build your civilization and track points across all categories',
     route: 'SevenWonders',
   },
   {
-    name: 'Ticket to Ride',
+    name: '🚂 Ticket to Ride',
     description: 'Build railway routes across North America',
     route: 'TicketToRide',
   },
   {
-    name: 'UNO',
+    name: '🎴 UNO',
     description: 'Classic card-matching game - don\'t forget to say UNO!',
     route: 'Uno',
   },

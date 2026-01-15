@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Animated, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 const PLAYER_COLORS = [
   { name: 'Blue', color: '#0066CC' },
@@ -277,8 +278,8 @@ export default function TicketToRideScreen() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Ticket to Ride Scorer</Text>
-          <TouchableOpacity style={styles.resetButton} onPress={resetGame}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Ticket to Ride Scorer</Text>
+          <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.colors.danger }]} onPress={resetGame}>
             <Text style={styles.resetButtonText}>Reset Game</Text>
           </TouchableOpacity>
         </View>
@@ -290,7 +291,8 @@ export default function TicketToRideScreen() {
               key={player.id}
               style={[
                 styles.playerCard,
-                selectedPlayerId === player.id && styles.playerCardSelected,
+                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                selectedPlayerId === player.id && [styles.playerCardSelected, { backgroundColor: theme.dark ? '#1a3a5c' : '#E8F4FF', borderColor: theme.colors.primary }],
                 { borderLeftColor: player.color.color, borderLeftWidth: 6 }
               ]}
               onPress={() => setSelectedPlayerId(selectedPlayerId === player.id ? null : player.id)}
@@ -299,7 +301,7 @@ export default function TicketToRideScreen() {
                 <View style={styles.playerInfo}>
                   {editingId === player.id ? (
                     <TextInput
-                      style={styles.nameInput}
+                      style={[styles.nameInput, { color: theme.colors.text, borderBottomColor: theme.colors.primary }]}
                       value={player.name}
                       onChangeText={(text) => updateName(player.id, text)}
                       onBlur={() => setEditingId(null)}
@@ -307,7 +309,7 @@ export default function TicketToRideScreen() {
                     />
                   ) : (
                     <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                      <Text style={styles.playerName}>{player.name}</Text>
+                      <Text style={[styles.playerName, { color: theme.colors.text }]}>{player.name}</Text>
                     </TouchableOpacity>
                   )}
                   <View style={[styles.colorBadge, { backgroundColor: player.color.color }]}>
@@ -316,7 +318,7 @@ export default function TicketToRideScreen() {
                 </View>
 
                 <TouchableOpacity
-                  style={styles.removeButton}
+                  style={[styles.removeButton, { backgroundColor: theme.colors.danger }]}
                   onPress={() => removePlayer(player.id)}
                 >
                   <Text style={styles.removeButtonText}>×</Text>
@@ -325,19 +327,19 @@ export default function TicketToRideScreen() {
 
               <View style={styles.scoreContainer}>
                 <TouchableOpacity
-                  style={styles.scoreButton}
+                  style={[styles.scoreButton, { backgroundColor: theme.colors.primary }]}
                   onPress={() => adjustScore(player.id, -1)}
                 >
                   <Text style={styles.scoreButtonText}>−</Text>
                 </TouchableOpacity>
 
                 <View style={styles.scoreDisplay}>
-                  <Text style={styles.scoreLabel}>Score</Text>
-                  <Text style={styles.scoreNumber}>{player.score}</Text>
+                  <Text style={[styles.scoreLabel, { color: theme.colors.textSecondary }]}>Score</Text>
+                  <Text style={[styles.scoreNumber, { color: theme.colors.primary }]}>{player.score}</Text>
                 </View>
 
                 <TouchableOpacity
-                  style={styles.scoreButton}
+                  style={[styles.scoreButton, { backgroundColor: theme.colors.primary }]}
                   onPress={() => adjustScore(player.id, 1)}
                 >
                   <Text style={styles.scoreButtonText}>+</Text>
@@ -346,24 +348,24 @@ export default function TicketToRideScreen() {
             </TouchableOpacity>
           ))}
 
-          <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.success }]} onPress={addPlayer}>
             <Text style={styles.addButtonText}>+ Add Player</Text>
           </TouchableOpacity>
         </View>
 
         {/* Route Scoring Section */}
-        <View style={styles.routeSection}>
-          <Text style={styles.sectionTitle}>Claim Route</Text>
+        <View style={[styles.routeSection, { backgroundColor: theme.dark ? '#3d3a1f' : '#FFF9E6' }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Claim Route</Text>
           {selectedPlayerId ? (
-            <View style={styles.selectedPlayerIndicator}>
-              <Text style={styles.selectedPlayerLabel}>Selected Player:</Text>
+            <View style={[styles.selectedPlayerIndicator, { backgroundColor: theme.colors.surface, borderColor: '#FFD700' }]}>
+              <Text style={[styles.selectedPlayerLabel, { color: theme.colors.textSecondary }]}>Selected Player:</Text>
               <View style={styles.selectedPlayerBadge}>
-                <View style={[styles.selectedPlayerColorDot, { backgroundColor: players.find(p => p.id === selectedPlayerId)?.color.color }]} />
-                <Text style={styles.selectedPlayerName}>{players.find(p => p.id === selectedPlayerId)?.name}</Text>
+                <View style={[styles.selectedPlayerColorDot, { backgroundColor: players.find(p => p.id === selectedPlayerId)?.color.color, borderColor: theme.colors.border }]} />
+                <Text style={[styles.selectedPlayerName, { color: theme.colors.text }]}>{players.find(p => p.id === selectedPlayerId)?.name}</Text>
               </View>
             </View>
           ) : (
-            <Text style={styles.sectionSubtitle}>
+            <Text style={[styles.sectionSubtitle, { color: theme.colors.textSecondary }]}>
               Select player above, then tap route length:
             </Text>
           )}
@@ -372,7 +374,7 @@ export default function TicketToRideScreen() {
             {[1, 2, 3, 4, 5, 6, 7, 8].map(length => (
               <TouchableOpacity
                 key={length}
-                style={styles.routeButton}
+                style={[styles.routeButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => addRoutePoints(length)}
               >
                 <Text style={styles.routeLength}>{length}</Text>
@@ -385,7 +387,7 @@ export default function TicketToRideScreen() {
         {/* Undo Button */}
         {showUndo && (
           <Animated.View style={[styles.undoContainer, { opacity: fadeAnim }]}>
-            <TouchableOpacity style={styles.undoButton} onPress={undoLastAction}>
+            <TouchableOpacity style={[styles.undoButton, { backgroundColor: theme.colors.warning }]} onPress={undoLastAction}>
               <Text style={styles.undoText}>↺ Undo Last Route</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -393,7 +395,7 @@ export default function TicketToRideScreen() {
 
         {/* Finish Game Button */}
         <TouchableOpacity
-          style={styles.finishGameButton}
+          style={[styles.finishGameButton, { backgroundColor: theme.colors.success }]}
           onPress={() => setShowFinishGame(!showFinishGame)}
         >
           <Text style={styles.finishGameText}>
@@ -403,11 +405,11 @@ export default function TicketToRideScreen() {
 
         {/* Final Scoring Section */}
         {showFinishGame && (
-          <View style={styles.finalScoringSection}>
-            <Text style={styles.finalScoringTitle}>Destination Tickets & Bonuses</Text>
+          <View style={[styles.finalScoringSection, { backgroundColor: theme.dark ? '#1a2f3d' : '#F0F9FF', borderColor: theme.colors.success }]}>
+            <Text style={[styles.finalScoringTitle, { color: theme.colors.text }]}>Destination Tickets & Bonuses</Text>
 
-            <View style={styles.longestRouteBonusConfig}>
-              <Text style={styles.bonusConfigLabel}>Longest Route Bonus:</Text>
+            <View style={[styles.longestRouteBonusConfig, { backgroundColor: theme.colors.surface, borderColor: '#FFD700' }]}>
+              <Text style={[styles.bonusConfigLabel, { color: theme.colors.text }]}>Longest Route Bonus:</Text>
               <View style={styles.bonusConfigControls}>
                 <TouchableOpacity
                   style={styles.bonusButton}
@@ -426,47 +428,47 @@ export default function TicketToRideScreen() {
             </View>
 
             {players.map(player => (
-              <View key={`final-${player.id}`} style={styles.finalPlayerCard}>
+              <View key={`final-${player.id}`} style={[styles.finalPlayerCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                 <View style={[styles.playerColorBar, { backgroundColor: player.color.color }]} />
 
                 <View style={styles.finalPlayerContent}>
-                  <Text style={styles.finalPlayerName}>{player.name}</Text>
+                  <Text style={[styles.finalPlayerName, { color: theme.colors.text }]}>{player.name}</Text>
 
                   <View style={styles.destinationTicketSection}>
-                    <Text style={styles.destinationLabel}>Destination Tickets:</Text>
+                    <Text style={[styles.destinationLabel, { color: theme.colors.textSecondary }]}>Destination Tickets:</Text>
                     <View style={styles.destinationControls}>
                       <TouchableOpacity
-                        style={styles.ticketButtonSmall}
+                        style={[styles.ticketButtonSmall, { backgroundColor: theme.colors.success }]}
                         onPress={() => adjustDestinationTickets(player.id, 1)}
                       >
                         <Text style={styles.ticketButtonText}>+1</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={styles.ticketButtonSmall}
+                        style={[styles.ticketButtonSmall, { backgroundColor: theme.colors.success }]}
                         onPress={() => adjustDestinationTickets(player.id, 5)}
                       >
                         <Text style={styles.ticketButtonText}>+5</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={styles.ticketButtonSmall}
+                        style={[styles.ticketButtonSmall, { backgroundColor: theme.colors.success }]}
                         onPress={() => adjustDestinationTickets(player.id, 10)}
                       >
                         <Text style={styles.ticketButtonText}>+10</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.ticketButtonSmall, styles.ticketButtonNegative]}
+                        style={[styles.ticketButtonSmall, { backgroundColor: theme.colors.danger }]}
                         onPress={() => adjustDestinationTickets(player.id, -1)}
                       >
                         <Text style={styles.ticketButtonText}>-1</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.ticketButtonSmall, styles.ticketButtonNegative]}
+                        style={[styles.ticketButtonSmall, { backgroundColor: theme.colors.danger }]}
                         onPress={() => adjustDestinationTickets(player.id, -5)}
                       >
                         <Text style={styles.ticketButtonText}>-5</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.ticketButtonSmall, styles.ticketButtonNegative]}
+                        style={[styles.ticketButtonSmall, { backgroundColor: theme.colors.danger }]}
                         onPress={() => adjustDestinationTickets(player.id, -10)}
                       >
                         <Text style={styles.ticketButtonText}>-10</Text>
@@ -475,14 +477,15 @@ export default function TicketToRideScreen() {
 
                     <View style={styles.customInputContainer}>
                       <TextInput
-                        style={styles.customInput}
+                        style={[styles.customInput, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
                         placeholder="Custom"
+                        placeholderTextColor={theme.colors.textTertiary}
                         keyboardType="numeric"
                         value={customInputs[player.id] || ''}
                         onChangeText={(text) => setCustomInputs({ ...customInputs, [player.id]: text })}
                       />
                       <TouchableOpacity
-                        style={styles.applyButton}
+                        style={[styles.applyButton, { backgroundColor: theme.colors.primary }]}
                         onPress={() => applyCustomPoints(player.id)}
                       >
                         <Text style={styles.applyButtonText}>Apply</Text>
@@ -493,12 +496,14 @@ export default function TicketToRideScreen() {
                   <TouchableOpacity
                     style={[
                       styles.longestRouteButton,
+                      { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
                       player.longestRoute && styles.longestRouteButtonActive
                     ]}
                     onPress={() => toggleLongestRoute(player.id)}
                   >
                     <Text style={[
                       styles.longestRouteText,
+                      { color: theme.colors.textSecondary },
                       player.longestRoute && styles.longestRouteTextActive
                     ]}>
                       {player.longestRoute ? `✓ Longest Route (+${longestRouteBonus})` : 'Longest Route'}
@@ -508,8 +513,8 @@ export default function TicketToRideScreen() {
               </View>
             ))}
 
-            <View style={styles.finalScoreInfo}>
-              <Text style={styles.finalScoreInfoText}>
+            <View style={[styles.finalScoreInfo, { backgroundColor: theme.colors.surface }]}>
+              <Text style={[styles.finalScoreInfoText, { color: theme.colors.textSecondary }]}>
                 • Use quick buttons (+1, +5, +10, -1, -5, -10) or custom input{'\n'}
                 • Only ONE player can have the Longest Route bonus{'\n'}
                 • Adjust Longest Route bonus value if needed (default: 10)
@@ -517,7 +522,7 @@ export default function TicketToRideScreen() {
             </View>
 
             <TouchableOpacity
-              style={styles.showWinnersButton}
+              style={[styles.showWinnersButton, { backgroundColor: theme.colors.warning }]}
               onPress={finishGame}
             >
               <Text style={styles.showWinnersButtonText}>🎉 Finish the Game & Show Winners 🎉</Text>
@@ -526,9 +531,9 @@ export default function TicketToRideScreen() {
         )}
 
         {/* Info Section */}
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Scoring Guide</Text>
-          <Text style={styles.text}>
+        <View style={[styles.infoSection, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Scoring Guide</Text>
+          <Text style={[styles.text, { color: theme.colors.textSecondary }]}>
             Route Points:{'\n'}
             • 1 train = 1 point{'\n'}
             • 2 trains = 2 points{'\n'}
@@ -549,22 +554,22 @@ export default function TicketToRideScreen() {
         animationType="fade"
         onRequestClose={() => setShowWinners(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.winnersModal}>
-            <Text style={styles.winnersTitle}>🎉 Game Finished! 🎉</Text>
-            <Text style={styles.winnersSubtitle}>Final Rankings</Text>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.winnersModal, { backgroundColor: theme.colors.background }]}>
+            <Text style={[styles.winnersTitle, { color: theme.colors.text }]}>🎉 Game Finished! 🎉</Text>
+            <Text style={[styles.winnersSubtitle, { color: theme.colors.textSecondary }]}>Final Rankings</Text>
 
             <View style={styles.podiumContainer}>
               {getSortedPlayers().slice(0, 3).map((player, index) => (
-                <View key={player.id} style={styles.podiumPlace}>
+                <View key={player.id} style={[styles.podiumPlace, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                   <Text style={styles.medalEmoji}>{getMedalEmoji(index)}</Text>
                   <View style={styles.podiumPlayerInfo}>
-                    <Text style={styles.podiumRank}>{index + 1}{index === 0 ? 'st' : index === 1 ? 'nd' : 'rd'} Place</Text>
+                    <Text style={[styles.podiumRank, { color: theme.colors.text }]}>{index + 1}{index === 0 ? 'st' : index === 1 ? 'nd' : 'rd'} Place</Text>
                     <View style={[styles.podiumColorBadge, { backgroundColor: player.color.color }]}>
                       <Text style={styles.podiumColorText}>{player.color.name}</Text>
                     </View>
-                    <Text style={styles.podiumPlayerName}>{player.name}</Text>
-                    <Text style={styles.podiumScore}>{player.score} points</Text>
+                    <Text style={[styles.podiumPlayerName, { color: theme.colors.primary }]}>{player.name}</Text>
+                    <Text style={[styles.podiumScore, { color: theme.colors.textSecondary }]}>{player.score} points</Text>
                   </View>
                 </View>
               ))}
@@ -572,7 +577,7 @@ export default function TicketToRideScreen() {
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.closeButton}
+                style={[styles.closeButton, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setShowWinners(false)}
               >
                 <Text style={styles.closeButtonText}>Close</Text>
@@ -588,7 +593,6 @@ export default function TicketToRideScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     padding: 20,
@@ -600,11 +604,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
     textAlign: 'center',
   },
   resetButton: {
-    backgroundColor: '#FF3B30',
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -619,16 +621,12 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   playerCard: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 12,
     padding: 15,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   playerCardSelected: {
-    backgroundColor: '#E8F4FF',
-    borderColor: '#007AFF',
     borderWidth: 2,
   },
   playerHeader: {
@@ -643,15 +641,12 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 6,
   },
   nameInput: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
     borderBottomWidth: 2,
-    borderBottomColor: '#007AFF',
     marginBottom: 6,
     padding: 0,
   },
@@ -670,7 +665,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#ff3b30',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -689,7 +683,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -704,16 +697,13 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 5,
   },
   scoreNumber: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#007AFF',
   },
   addButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -725,7 +715,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   routeSection: {
-    backgroundColor: '#FFF9E6',
     padding: 15,
     borderRadius: 12,
     marginBottom: 20,
@@ -736,24 +725,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
-    color: '#333',
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 15,
   },
   selectedPlayerIndicator: {
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#FFD700',
   },
   selectedPlayerLabel: {
     fontSize: 12,
-    color: '#666',
     marginBottom: 6,
     fontWeight: '600',
   },
@@ -767,12 +751,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
   },
   selectedPlayerName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   routeButtons: {
     flexDirection: 'row',
@@ -783,7 +765,6 @@ const styles = StyleSheet.create({
   routeButton: {
     width: '23%',
     aspectRatio: 1,
-    backgroundColor: '#007AFF',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -800,22 +781,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   infoSection: {
-    backgroundColor: '#f9f9f9',
     padding: 15,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
   },
   text: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#666',
   },
   undoContainer: {
     marginBottom: 20,
   },
   undoButton: {
-    backgroundColor: '#FF9500',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -834,7 +811,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   finishGameButton: {
-    backgroundColor: '#34C759',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
@@ -846,27 +822,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   finalScoringSection: {
-    backgroundColor: '#F0F9FF',
     padding: 15,
     borderRadius: 12,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#34C759',
   },
   finalScoringTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#333',
     textAlign: 'center',
   },
   finalPlayerCard: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     marginBottom: 15,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
     flexDirection: 'row',
   },
   playerColorBar: {
@@ -879,7 +850,6 @@ const styles = StyleSheet.create({
   finalPlayerName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 12,
   },
   destinationTicketSection: {
@@ -887,7 +857,6 @@ const styles = StyleSheet.create({
   },
   destinationLabel: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   destinationControls: {
@@ -896,27 +865,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 4,
   },
-  ticketButton: {
-    flex: 1,
-    backgroundColor: '#FF3B30',
-    padding: 10,
-    borderRadius: 8,
-    marginHorizontal: 3,
-    alignItems: 'center',
-  },
   ticketButtonSmall: {
     flex: 1,
-    backgroundColor: '#34C759',
     paddingVertical: 6,
     paddingHorizontal: 4,
     borderRadius: 6,
     alignItems: 'center',
-  },
-  ticketButtonPositive: {
-    backgroundColor: '#34C759',
-  },
-  ticketButtonNegative: {
-    backgroundColor: '#FF3B30',
   },
   ticketButtonText: {
     color: '#fff',
@@ -930,16 +884,13 @@ const styles = StyleSheet.create({
   },
   customInput: {
     flex: 1,
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 6,
     padding: 8,
     marginRight: 8,
     fontSize: 14,
   },
   applyButton: {
-    backgroundColor: '#007AFF',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 6,
@@ -950,7 +901,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   longestRouteBonusConfig: {
-    backgroundColor: '#fff',
     padding: 12,
     borderRadius: 8,
     marginBottom: 15,
@@ -958,12 +908,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#FFD700',
   },
   bonusConfigLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
   },
   bonusConfigControls: {
     flexDirection: 'row',
@@ -991,12 +939,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   longestRouteButton: {
-    backgroundColor: '#f5f5f5',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#e0e0e0',
   },
   longestRouteButtonActive: {
     backgroundColor: '#FFD700',
@@ -1005,13 +951,11 @@ const styles = StyleSheet.create({
   longestRouteText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
   },
   longestRouteTextActive: {
     color: '#333',
   },
   finalScoreInfo: {
-    backgroundColor: '#fff',
     padding: 12,
     borderRadius: 8,
     marginTop: 10,
@@ -1019,10 +963,8 @@ const styles = StyleSheet.create({
   finalScoreInfoText: {
     fontSize: 12,
     lineHeight: 18,
-    color: '#666',
   },
   showWinnersButton: {
-    backgroundColor: '#FF9500',
     borderRadius: 12,
     padding: 18,
     alignItems: 'center',
@@ -1043,13 +985,11 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   winnersModal: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
     width: '100%',
@@ -1068,25 +1008,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
-    color: '#333',
   },
   winnersSubtitle: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 18,
-    color: '#666',
     fontWeight: '600',
   },
   podiumContainer: {
     marginBottom: 18,
   },
   podiumPlace: {
-    backgroundColor: '#f9f9f9',
     borderRadius: 10,
     padding: 12,
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: '#e0e0e0',
     alignItems: 'center',
   },
   medalEmoji: {
@@ -1100,7 +1036,6 @@ const styles = StyleSheet.create({
   podiumRank: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 6,
   },
   podiumColorBadge: {
@@ -1117,12 +1052,10 @@ const styles = StyleSheet.create({
   podiumPlayerName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#007AFF',
     marginBottom: 4,
   },
   podiumScore: {
     fontSize: 16,
-    color: '#666',
     fontWeight: '600',
   },
   modalButtons: {
@@ -1130,7 +1063,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeButton: {
-    backgroundColor: '#007AFF',
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 32,
