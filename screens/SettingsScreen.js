@@ -1,12 +1,17 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, Switch } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, Switch, TextInput } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../context/SubscriptionContext';
+import { useAuth } from '../context/AuthContext';
+import { FREE_GAMES_COUNT } from '../constants/games'
 
 export default function SettingsScreen() {
   const { isDarkMode, toggleTheme, theme } = useTheme();
   const { isPremium, togglePremium } = useSubscription();
+  const { displayName, updateDisplayName } = useAuth();
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState(displayName);
   const clearAllData = () => {
     Alert.alert(
       'Clear All Data',
@@ -40,18 +45,67 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleSaveName = async () => {
+    if (tempName.trim()) {
+      await updateDisplayName(tempName.trim());
+      setIsEditingName(false);
+    }
+  };
+
   return (
-    <ScrollView 
+    <ScrollView
       contentContainerStyle={styles.container}
       style={{ backgroundColor: theme.colors.background }}
     >
+      <View style={[styles.section, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Profile</Text>
+        <View style={[styles.themeToggle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+          {isEditingName ? (
+            <TextInput
+              style={[
+                styles.nameInput,
+                {
+                  color: theme.colors.text,
+                  borderColor: theme.colors.primary,
+                }
+              ]}
+              value={tempName}
+              onChangeText={setTempName}
+              placeholder="Enter your name"
+              placeholderTextColor={theme.colors.textTertiary}
+              maxLength={30}
+            />
+          ) : (
+            <Text style={[styles.themeLabel, { color: theme.colors.text }]}>{displayName}</Text>
+          )}
+          <TouchableOpacity
+            onPress={() => {
+              if (isEditingName) {
+                handleSaveName();
+              } else {
+                setTempName(displayName);
+                setIsEditingName(true);
+              }
+            }}
+            style={styles.editButton}
+          >
+            <Text style={[styles.editButtonText, { color: theme.colors.primary }]}>
+              {isEditingName ? 'Save' : 'Edit'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={[styles.helpText, { color: theme.colors.textSecondary }]}>
+          Your display name appears in online game rooms
+        </Text>
+      </View>
+
       <View style={[styles.section, { backgroundColor: theme.colors.background }]}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Subscription</Text>
         <View style={[styles.themeToggle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
           <View>
             <Text style={[styles.themeLabel, { color: theme.colors.text }]}>Premium Mode</Text>
             <Text style={[styles.toggleSubtext, { color: theme.colors.textSecondary }]}>
-              {isPremium ? 'All games unlocked' : 'Only 4 games available'}
+              {isPremium ? 'All games unlocked' : `Only ${FREE_GAMES_COUNT} games available`}
             </Text>
           </View>
           <Switch value={isPremium} onValueChange={togglePremium} />
@@ -124,6 +178,22 @@ const styles = StyleSheet.create({
   toggleSubtext: {
     fontSize: 12,
     marginTop: 2,
+  },
+  nameInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    borderBottomWidth: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  editButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   dangerButton: {
     backgroundColor: '#FF3B30',

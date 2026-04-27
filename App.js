@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import GamesScreen from './screens/GamesScreen';
@@ -22,6 +23,7 @@ import AzulScreen from './screens/AzulScreen';
 import PlayerSelectorScreen from './screens/PlayerSelectorScreen';
 import Magic8BallScreen from './screens/Magic8BallScreen';
 import TicTacToeScreen from './screens/TicTacToeScreen';
+import WordGuessScreen from './screens/WordGuessScreen';
 
 const Tab = createBottomTabNavigator();
 const GamesStack = createNativeStackNavigator();
@@ -101,17 +103,24 @@ function GamesStackNavigator() {
         component={TicTacToeScreen}
         options={{ title: 'Tic Tac Toe' }}
       />
+      <GamesStack.Screen
+        name="WordGuess"
+        component={WordGuessScreen}
+        options={{ title: 'Word Guess' }}
+      />
     </GamesStack.Navigator>
   );
 }
 
 export default function App() {
   return (
-    <SubscriptionProvider>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </SubscriptionProvider>
+    <AuthProvider>
+      <SubscriptionProvider>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </SubscriptionProvider>
+    </AuthProvider>
   );
 }
 
@@ -140,7 +149,7 @@ function AppContent() {
             const timeDiff = Date.now() - parseInt(timestamp);
             // If more than 30 minutes, clear the game data (app was likely terminated)
             if (timeDiff > 30 * 60 * 1000) {
-              AsyncStorage.multiRemove(['ticketToRideGameData', 'munchkinGameData', 'counterGameData', 'unoGameData', 'diceRollerGameData', 'catanGameData', 'sevenWondersGameData', 'azulGameData']);
+              AsyncStorage.multiRemove(['ticketToRideGameData', 'munchkinGameData', 'counterGameData', 'unoGameData', 'diceRollerGameData', 'catanGameData', 'sevenWondersGameData', 'azulGameData', 'wordGuessGameData']);
             }
           }
         });

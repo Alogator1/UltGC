@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { STORAGE_KEYS, AUTO_SAVE_TIMEOUT } from '../constants/gameConfig';
+import { useRoom } from '../hooks/useRoom';
+import RoomLobby from '../components/RoomLobby';
+import OnlineBanner from '../components/OnlineBanner';
 
 const STORAGE_KEY = STORAGE_KEYS.COUNTER;
 
 export default function CounterScreen() {
   const { theme } = useTheme();
-  const [players, setPlayers] = useState([
+  const room = useRoom('Counter');
+  const [showRoomLobby, setShowRoomLobby] = useState(false);
+
+  const [localPlayers, setLocalPlayers] = useState([
     { id: 1, name: DEFAULT_PLAYER_NAMES[0], score: 0 },
     { id: 2, name: DEFAULT_PLAYER_NAMES[1], score: 0 },
   ]);
@@ -18,8 +25,22 @@ export default function CounterScreen() {
   const [scoreInput, setScoreInput] = useState('');
   const [lastSaveTime, setLastSaveTime] = useState(Date.now());
 
+  // Derive effective players list: either local or from online room
+  const players = room.isOnline
+    ? [...room.players]
+        .sort((a, b) => (b.id === room.userId ? 1 : 0) - (a.id === room.userId ? 1 : 0))
+        .map((p) => ({
+          id: p.id,
+          name: p.displayName,
+          score: p.playerData?.score || 0,
+        }))
+    : localPlayers;
+
   useEffect(() => {
     loadData();
+    return () => {
+      room.deleteRoom();
+    };
   }, []);
 
   useEffect(() => {
@@ -27,7 +48,7 @@ export default function CounterScreen() {
       saveData();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [players]);
+  }, [localPlayers]);
 
   const loadData = async () => {
     try {
@@ -36,7 +57,7 @@ export default function CounterScreen() {
         const { players: savedPlayers, timestamp } = JSON.parse(savedData);
         const timeDiff = Date.now() - timestamp;
         if (timeDiff < AUTO_SAVE_TIMEOUT) {
-          setPlayers(savedPlayers);
+          setLocalPlayers(savedPlayers);
           setLastSaveTime(timestamp);
         }
       }
@@ -48,7 +69,7 @@ export default function CounterScreen() {
   const saveData = async () => {
     try {
       const dataToSave = {
-        players,
+        players: localPlayers,
         timestamp: Date.now(),
       };
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
@@ -59,26 +80,35 @@ export default function CounterScreen() {
   };
 
   const addPlayer = () => {
-    const newId = players.length > 0 ? Math.max(...players.map(p => p.id)) + 1 : 1;
-    setPlayers([...players, { id: newId, name: `Player ${newId}`, score: 0 }]);
+    const newId = localPlayers.length > 0 ? Math.max(...localPlayers.map(p => p.id)) + 1 : 1;
+    setLocalPlayers([...localPlayers, { id: newId, name: `Player ${newId}`, score: 0 }]);
   };
 
   const removePlayer = (id) => {
-    if (players.length > 1) {
-      setPlayers(players.filter(p => p.id !== id));
+    if (localPlayers.length > 1) {
+      setLocalPlayers(localPlayers.filter(p => p.id !== id));
     } else {
       Alert.alert('Cannot Remove', 'You must have at least one player.');
     }
   };
 
   const updateScore = (id, delta) => {
-    setPlayers(players.map(p =>
-      p.id === id ? { ...p, score: p.score + delta } : p
-    ));
+    if (room.isOnline) {
+      if (!room.allCanEdit && id !== room.userId) return;
+      const target = room.players.find(p => p.id === id);
+      const currentScore = target?.playerData?.score || 0;
+      room.updatePlayerData(id, { score: currentScore + delta });
+    } else {
+      setLocalPlayers(localPlayers.map(p =>
+        p.id === id ? { ...p, score: p.score + delta } : p
+      ));
+    }
   };
 
   const updateName = (id, name) => {
-    setPlayers(players.map(p =>
+    // Names are not editable in online mode
+    if (room.isOnline) return;
+    setLocalPlayers(localPlayers.map(p =>
       p.id === id ? { ...p, name } : p
     ));
   };
@@ -91,9 +121,14 @@ export default function CounterScreen() {
   const saveScore = (id) => {
     const newScore = parseInt(scoreInput, 10);
     if (!isNaN(newScore)) {
-      setPlayers(players.map(p =>
-        p.id === id ? { ...p, score: newScore } : p
-      ));
+      if (room.isOnline) {
+        if (!room.allCanEdit && id !== room.userId) return;
+        room.updatePlayerData(id, { score: newScore });
+      } else {
+        setLocalPlayers(localPlayers.map(p =>
+          p.id === id ? { ...p, score: newScore } : p
+        ));
+      }
     }
     setEditingScoreId(null);
     setScoreInput('');
@@ -108,7 +143,17 @@ export default function CounterScreen() {
         {
           text: 'Reset',
           style: 'destructive',
-          onPress: () => setPlayers(players.map(p => ({ ...p, score: 0 }))),
+          onPress: () => {
+            if (room.isOnline) {
+              if (room.allCanEdit) {
+                room.players.forEach(p => room.updatePlayerData(p.id, { score: 0 }));
+              } else {
+                room.updatePlayerData(room.userId, { score: 0 });
+              }
+            } else {
+              setLocalPlayers(localPlayers.map(p => ({ ...p, score: 0 })));
+            }
+          },
         },
       ]
     );
@@ -116,9 +161,20 @@ export default function CounterScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Score Counter</Text>
+          <View style={styles.headerTop}>
+            <Text style={[styles.title, { color: theme.colors.text }]}>Score Counter</Text>
+            {!room.isOnline && (
+              <TouchableOpacity
+                style={[styles.onlineButton, { backgroundColor: theme.colors.primary }]}
+                onPress={() => setShowRoomLobby(true)}
+              >
+                <Ionicons name="wifi" size={16} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </View>
           <TouchableOpacity style={styles.resetButton} onPress={resetScores}>
             <Text style={styles.resetButtonText}>Reset Scores</Text>
           </TouchableOpacity>
@@ -137,7 +193,7 @@ export default function CounterScreen() {
               ]}
             >
               <View style={styles.playerHeader}>
-                {editingId === player.id ? (
+                {editingId === player.id && !room.isOnline ? (
                   <TextInput
                     style={[
                       styles.nameInput,
@@ -152,16 +208,18 @@ export default function CounterScreen() {
                     autoFocus
                   />
                 ) : (
-                  <TouchableOpacity onPress={() => setEditingId(player.id)}>
+                  <TouchableOpacity onPress={() => !room.isOnline && setEditingId(player.id)}>
                     <Text style={[styles.playerName, { color: theme.colors.text }]}>{player.name}</Text>
                   </TouchableOpacity>
                 )}
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removePlayer(player.id)}
-                >
-                  <Text style={styles.removeButtonText}>×</Text>
-                </TouchableOpacity>
+                {!room.isOnline && (
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => removePlayer(player.id)}
+                  >
+                    <Text style={styles.removeButtonText}>×</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={styles.scoreContainer}>
@@ -233,9 +291,11 @@ export default function CounterScreen() {
             </View>
           ))}
 
-          <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
-            <Text style={styles.addButtonText}>+ Add Player</Text>
-          </TouchableOpacity>
+          {!room.isOnline && (
+            <TouchableOpacity style={styles.addButton} onPress={addPlayer}>
+              <Text style={styles.addButtonText}>+ Add Player</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={[styles.infoSection, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
@@ -250,6 +310,13 @@ export default function CounterScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      <RoomLobby
+        visible={showRoomLobby}
+        onClose={() => setShowRoomLobby(false)}
+        room={room}
+        gameType="Counter"
+      />
     </View>
   );
 }
@@ -264,11 +331,24 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 20,
   },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 12,
     textAlign: 'center',
+    flex: 1,
+  },
+  onlineButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   resetButton: {
     backgroundColor: '#FF3B30',

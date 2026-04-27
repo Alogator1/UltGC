@@ -1,721 +1,746 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Animated } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { DICE_TYPES } from '../constants/gameConfig';
+import { useRoom } from '../hooks/useRoom';
+import RoomLobby from '../components/RoomLobby';
+import OnlineBanner from '../components/OnlineBanner';
+
+// Count how many of each dice type a player has selected
+function countsByType(dice) {
+  const counts = {};
+  for (const d of dice) {
+    counts[d.type] = (counts[d.type] || 0) + 1;
+  }
+  return counts;
+}
+
+// Human-readable summary of selected dice, e.g. "2×d6 + 1×d20"
+function diceSummary(dice) {
+  const counts = countsByType(dice);
+  return Object.entries(counts)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([type, count]) => `${count}×d${type}`)
+    .join('  +  ');
+}
 
 export default function DiceRollerScreen() {
   const { theme } = useTheme();
-  const [players, setPlayers] = useState([
-    { id: 1, name: DEFAULT_PLAYER_NAMES[0], dice: [], rolls: [] },
+  const room = useRoom('DiceRoller');
+  const [showRoomLobby, setShowRoomLobby] = useState(false);
+
+  const [localPlayers, setLocalPlayers] = useState([
+    { id: 1, name: DEFAULT_PLAYER_NAMES[0], dice: [], rolls: [], hideHistory: false },
   ]);
   const [nextId, setNextId] = useState(2);
   const [editingId, setEditingId] = useState(null);
   const [animatingPlayers, setAnimatingPlayers] = useState(new Set());
 
-  // Load saved data on mount
+  const players = room.isOnline
+    ? [...room.players]
+        .sort((a, b) => (b.id === room.userId ? 1 : 0) - (a.id === room.userId ? 1 : 0))
+        .map((p) => ({
+          id: p.id,
+          name: p.displayName,
+          dice: p.playerData?.dice || [],
+          rolls: p.playerData?.rolls || [],
+          hideHistory: p.playerData?.hideHistory || false,
+        }))
+    : localPlayers;
+
+  const canEdit = (playerId) =>
+    !room.isOnline || room.allCanEdit || playerId === room.userId;
+
+  const isOwn = (playerId) => !room.isOnline || playerId === room.userId;
+
+  const getPlayerData = (playerId) => {
+    const p = room.players.find((r) => r.id === playerId);
+    return {
+      dice: p?.playerData?.dice || [],
+      rolls: p?.playerData?.rolls || [],
+      hideHistory: p?.playerData?.hideHistory || false,
+    };
+  };
+
+  const toggleHideHistory = (playerId) => {
+    if (room.isOnline) {
+      if (!isOwn(playerId)) return;
+      const pd = getPlayerData(playerId);
+      room.updatePlayerData(playerId, { ...pd, hideHistory: !pd.hideHistory });
+    } else {
+      setLocalPlayers((prev) =>
+        prev.map((p) => (p.id === playerId ? { ...p, hideHistory: !p.hideHistory } : p))
+      );
+    }
+  };
+
   useEffect(() => {
     const loadGameData = async () => {
       try {
         const savedData = await AsyncStorage.getItem('diceRollerGameData');
         if (savedData) {
           const data = JSON.parse(savedData);
-          // Ensure all players have dice array for backwards compatibility
-          const playersWithDefaults = (data.players || players).map(p => ({
+          const withDefaults = (data.players || localPlayers).map((p) => ({
             ...p,
             dice: p.dice || [],
-            rolls: p.rolls || []
+            rolls: p.rolls || [],
           }));
-          setPlayers(playersWithDefaults);
+          setLocalPlayers(withDefaults);
           setNextId(data.nextId || nextId);
         }
-      } catch (error) {
-        console.error('Error loading game data:', error);
+      } catch (err) {
+        console.error('Error loading game data:', err);
       }
     };
     loadGameData();
+    return () => { room.deleteRoom(); };
   }, []);
 
-  // Save data whenever it changes
   useEffect(() => {
-    const saveGameData = async () => {
-      try {
-        const dataToSave = {
-          players,
-          nextId,
-        };
-        await AsyncStorage.setItem('diceRollerGameData', JSON.stringify(dataToSave));
-      } catch (error) {
-        console.error('Error saving game data:', error);
-      }
-    };
-    saveGameData();
-  }, [players, nextId]);
+    if (room.isOnline) return;
+    AsyncStorage.setItem('diceRollerGameData', JSON.stringify({ players: localPlayers, nextId })).catch(console.error);
+  }, [localPlayers, nextId, room.isOnline]);
 
-  const addPlayer = () => {
-    setPlayers([...players, { id: nextId, name: `Player ${nextId}`, dice: [], rolls: [] }]);
-    setNextId(nextId + 1);
-  };
+  // ── Dice management ─────────────────────────────────────────────────────────
 
-  const removePlayer = (id) => {
-    if (players.length === 1) {
-      Alert.alert('Cannot Remove', 'At least one player must remain.');
-      return;
+  const addDice = (playerId, diceType) => {
+    if (room.isOnline) {
+      if (!canEdit(playerId)) return;
+      const pd = getPlayerData(playerId);
+      room.updatePlayerData(playerId, {
+        ...pd,
+        dice: [...pd.dice, { id: Date.now() + Math.random(), type: diceType }],
+      });
+    } else {
+      setLocalPlayers((prev) =>
+        prev.map((p) =>
+          p.id === playerId
+            ? { ...p, dice: [...p.dice, { id: Date.now() + Math.random(), type: diceType }] }
+            : p
+        )
+      );
     }
-    setPlayers(players.filter(player => player.id !== id));
   };
 
-  const updatePlayerName = (id, name) => {
-    setPlayers(players.map(player =>
-      player.id === id ? { ...player, name } : player
-    ));
-  };
-
-  const addDiceToPlayer = (playerId, diceType) => {
-    setPlayers(players.map(player =>
-      player.id === playerId
-        ? { ...player, dice: [...player.dice, { id: Date.now() + Math.random(), type: diceType }] }
-        : player
-    ));
-  };
-
-  const removeDiceFromPlayer = (playerId, diceId) => {
-    setPlayers(players.map(player =>
-      player.id === playerId
-        ? { ...player, dice: player.dice.filter(d => d.id !== diceId) }
-        : player
-    ));
-  };
-
-  const rollSingleDice = (sides) => {
-    return Math.floor(Math.random() * sides) + 1;
-  };
-
-  const rollAllDiceForPlayer = (playerId) => {
-    const player = players.find(p => p.id === playerId);
-    if (!player || player.dice.length === 0) {
-      Alert.alert('No Dice', 'Add some dice first before rolling!');
-      return;
+  const removeDice = (playerId, diceType) => {
+    if (room.isOnline) {
+      if (!canEdit(playerId)) return;
+      const pd = getPlayerData(playerId);
+      const idx = pd.dice.map((d) => d.type).lastIndexOf(diceType);
+      if (idx === -1) return;
+      const newDice = [...pd.dice];
+      newDice.splice(idx, 1);
+      room.updatePlayerData(playerId, { ...pd, dice: newDice });
+    } else {
+      setLocalPlayers((prev) =>
+        prev.map((p) => {
+          if (p.id !== playerId) return p;
+          const idx = p.dice.map((d) => d.type).lastIndexOf(diceType);
+          if (idx === -1) return p;
+          const newDice = [...p.dice];
+          newDice.splice(idx, 1);
+          return { ...p, dice: newDice };
+        })
+      );
     }
-
-    // Start animation
-    setAnimatingPlayers(prev => new Set(prev).add(playerId));
-
-    // Simulate rolling animation with random numbers
-    let animationCount = 0;
-    const animationInterval = setInterval(() => {
-      animationCount++;
-      if (animationCount >= 10) {
-        clearInterval(animationInterval);
-
-        // Final roll with actual results
-        const results = player.dice.map(dice => ({
-          diceId: dice.id,
-          type: dice.type,
-          result: rollSingleDice(dice.type),
-        }));
-
-        const total = results.reduce((sum, r) => sum + r.result, 0);
-
-        const rollData = {
-          id: Date.now() + Math.random(),
-          timestamp: new Date().toLocaleTimeString(),
-          results,
-          total,
-        };
-
-        setPlayers(players.map(player =>
-          player.id === playerId
-            ? { ...player, rolls: [rollData, ...player.rolls].slice(0, 10) }
-            : player
-        ));
-
-        // End animation
-        setAnimatingPlayers(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(playerId);
-          return newSet;
-        });
-      }
-    }, 50);
   };
 
-  const clearPlayerDice = (playerId) => {
-    setPlayers(players.map(player =>
-      player.id === playerId ? { ...player, dice: [] } : player
-    ));
+  const clearDice = (playerId) => {
+    if (room.isOnline) {
+      if (!canEdit(playerId)) return;
+      const pd = getPlayerData(playerId);
+      room.updatePlayerData(playerId, { ...pd, dice: [] });
+    } else {
+      setLocalPlayers((prev) => prev.map((p) => (p.id === playerId ? { ...p, dice: [] } : p)));
+    }
   };
 
-  const clearPlayerRolls = (playerId) => {
-    setPlayers(players.map(player =>
-      player.id === playerId ? { ...player, rolls: [] } : player
-    ));
+  const clearRolls = (playerId) => {
+    if (room.isOnline) {
+      if (!canEdit(playerId)) return;
+      const pd = getPlayerData(playerId);
+      room.updatePlayerData(playerId, { ...pd, rolls: [] });
+    } else {
+      setLocalPlayers((prev) => prev.map((p) => (p.id === playerId ? { ...p, rolls: [] } : p)));
+    }
   };
 
   const clearAllRolls = () => {
-    Alert.alert(
-      'Clear All Rolls',
-      'Are you sure you want to clear all roll history?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: () => setPlayers(players.map(player => ({ ...player, rolls: [] })))
+    Alert.alert('Clear All Rolls', 'Clear all roll history for every player?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: () => {
+          if (room.isOnline) {
+            players.forEach((p) => { if (canEdit(p.id)) clearRolls(p.id); });
+          } else {
+            setLocalPlayers((prev) => prev.map((p) => ({ ...p, rolls: [] })));
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  const rollAllPlayers = () => {
-    const playersWithDice = players.filter(p => p.dice.length > 0);
+  // ── Rolling ──────────────────────────────────────────────────────────────────
 
-    if (playersWithDice.length === 0) {
-      Alert.alert('No Dice', 'Add dice to at least one player before rolling!');
+  const rollForPlayer = (playerId) => {
+    const player = players.find((p) => p.id === playerId);
+    if (!player || player.dice.length === 0) {
+      Alert.alert('No Dice', 'Add some dice first!');
       return;
     }
+    if (!canEdit(playerId)) return;
 
-    // Start animation for all players
-    playersWithDice.forEach(player => {
-      setAnimatingPlayers(prev => new Set(prev).add(player.id));
-    });
+    setAnimatingPlayers((prev) => new Set(prev).add(playerId));
 
-    // Simulate rolling animation
-    let animationCount = 0;
-    const animationInterval = setInterval(() => {
-      animationCount++;
-      if (animationCount >= 10) {
-        clearInterval(animationInterval);
+    let count = 0;
+    const interval = setInterval(() => {
+      if (++count < 10) return;
+      clearInterval(interval);
 
-        // Final roll with actual results
-        const updatedPlayers = players.map(player => {
-          if (player.dice.length === 0) return player;
+      const results = player.dice.map((d) => ({
+        diceId: d.id,
+        type: d.type,
+        result: Math.floor(Math.random() * d.type) + 1,
+      }));
+      const total = results.reduce((s, r) => s + r.result, 0);
+      const rollData = {
+        id: Date.now() + Math.random(),
+        timestamp: new Date().toLocaleTimeString(),
+        results,
+        total,
+      };
 
-          const results = player.dice.map(dice => ({
-            diceId: dice.id,
-            type: dice.type,
-            result: rollSingleDice(dice.type),
-          }));
-
-          const total = results.reduce((sum, r) => sum + r.result, 0);
-
-          const rollData = {
-            id: Date.now() + Math.random(),
-            timestamp: new Date().toLocaleTimeString(),
-            results,
-            total,
-          };
-
-          return {
-            ...player,
-            rolls: [rollData, ...player.rolls].slice(0, 10)
-          };
-        });
-
-        setPlayers(updatedPlayers);
-
-        // End animation for all players
-        setAnimatingPlayers(new Set());
+      if (room.isOnline) {
+        const pd = getPlayerData(playerId);
+        room.updatePlayerData(playerId, { ...pd, rolls: [rollData, ...pd.rolls].slice(0, 10) });
+      } else {
+        setLocalPlayers((prev) =>
+          prev.map((p) =>
+            p.id === playerId ? { ...p, rolls: [rollData, ...p.rolls].slice(0, 10) } : p
+          )
+        );
       }
+
+      setAnimatingPlayers((prev) => {
+        const next = new Set(prev);
+        next.delete(playerId);
+        return next;
+      });
     }, 50);
   };
 
+  const rollAll = () => {
+    const eligible = players.filter((p) => p.dice.length > 0 && canEdit(p.id));
+    if (eligible.length === 0) {
+      Alert.alert('No Dice', 'Add dice to at least one player first!');
+      return;
+    }
+    eligible.forEach((p) => rollForPlayer(p.id));
+  };
+
+  // ── Player management (offline only) ────────────────────────────────────────
+
+  const addPlayer = () => {
+    setLocalPlayers((prev) => [
+      ...prev,
+      { id: nextId, name: `Player ${nextId}`, dice: [], rolls: [], hideHistory: false },
+    ]);
+    setNextId((n) => n + 1);
+  };
+
+  const removePlayer = (id) => {
+    if (localPlayers.length === 1) {
+      Alert.alert('Cannot Remove', 'At least one player must remain.');
+      return;
+    }
+    setLocalPlayers((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const updatePlayerName = (id, name) => {
+    setLocalPlayers((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
+  };
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.primary }]}>Dice Roller</Text>
-          <TouchableOpacity
-            style={[styles.clearAllButton, { backgroundColor: theme.colors.danger }]}
-            onPress={clearAllRolls}
-          >
-            <Text style={styles.clearAllButtonText}>Clear All</Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            {!room.isOnline && (
+              <TouchableOpacity
+                style={[styles.iconBtn, { backgroundColor: theme.colors.primary }]}
+                onPress={() => setShowRoomLobby(true)}
+              >
+                <Ionicons name="wifi" size={16} color="#fff" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.iconBtn, { backgroundColor: theme.colors.danger }]}
+              onPress={clearAllRolls}
+            >
+              <Ionicons name="trash-outline" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Roll All Players Button */}
-        <TouchableOpacity
-          style={[styles.rollAllPlayersButton, { backgroundColor: theme.colors.success }]}
-          onPress={rollAllPlayers}
-        >
-          <Text style={styles.rollAllPlayersButtonText}>🎲 Roll All Players</Text>
-        </TouchableOpacity>
-
-        {/* Players */}
-        {players.map((player) => (
-          <View
-            key={player.id}
-            style={[
-              styles.playerCard,
-              { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
-            ]}
+        {/* Roll all — hidden in online mode when only the user can edit their own dice */}
+        {(!room.isOnline || room.allCanEdit) && (
+          <TouchableOpacity
+            style={[styles.rollAllBtn, { backgroundColor: theme.colors.success }]}
+            onPress={rollAll}
           >
-            <View style={styles.playerHeader}>
-              {editingId === player.id ? (
-                <TextInput
-                  style={[
-                    styles.playerNameInput,
-                    { color: theme.colors.text, borderBottomColor: theme.colors.primary }
-                  ]}
-                  value={player.name}
-                  onChangeText={(text) => updatePlayerName(player.id, text)}
-                  onBlur={() => setEditingId(null)}
-                  autoFocus
-                />
-              ) : (
-                <TouchableOpacity onPress={() => setEditingId(player.id)}>
-                  <Text style={[styles.playerName, { color: theme.colors.text }]}>
-                    {player.name}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={[styles.deleteButton, { backgroundColor: theme.colors.danger }]}
-                onPress={() => removePlayer(player.id)}
-              >
-                <Text style={styles.deleteButtonText}>×</Text>
-              </TouchableOpacity>
-            </View>
+            <Ionicons name="dice-outline" size={22} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.rollAllBtnText}>Roll All Players</Text>
+          </TouchableOpacity>
+        )}
 
-            {/* Player's Dice */}
-            <View style={styles.diceSection}>
-              {player.dice.length > 0 ? (
-                <>
-                  <View style={styles.diceSectionHeader}>
-                    <Text style={[styles.diceSectionTitle, { color: theme.colors.primary }]}>
-                      Selected Dice ({player.dice.length}):
-                    </Text>
-                    <TouchableOpacity
-                      style={[styles.clearDiceButton, { backgroundColor: theme.colors.danger }]}
-                      onPress={() => clearPlayerDice(player.id)}
-                    >
-                      <Text style={styles.clearDiceButtonText}>Clear</Text>
+        {/* Player cards */}
+        {players.map((player) => {
+          const isMe = player.id === room.userId && room.isOnline;
+          const editable = canEdit(player.id);
+          const own = isOwn(player.id);
+          const isAnimating = animatingPlayers.has(player.id);
+          const counts = countsByType(player.dice);
+          const totalDice = player.dice.length;
+          const summary = totalDice > 0 ? diceSummary(player.dice) : null;
+          // Others see hidden history as a placeholder; owner always sees their own rolls
+          const historyVisible = own || !player.hideHistory;
+
+          return (
+            <View
+              key={player.id}
+              style={[
+                styles.playerCard,
+                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                isMe && { borderColor: theme.colors.primary, borderWidth: 2 },
+              ]}
+            >
+              {/* Player header */}
+              <View style={styles.playerHeader}>
+                <View style={styles.playerHeaderLeft}>
+                  {isMe && (
+                    <View style={[styles.meBadge, { backgroundColor: theme.colors.primary }]}>
+                      <Text style={styles.meBadgeText}>YOU</Text>
+                    </View>
+                  )}
+                  {editingId === player.id && !room.isOnline ? (
+                    <TextInput
+                      style={[styles.nameInput, { color: theme.colors.text, borderBottomColor: theme.colors.primary }]}
+                      value={player.name}
+                      onChangeText={(t) => updatePlayerName(player.id, t)}
+                      onBlur={() => setEditingId(null)}
+                      autoFocus
+                    />
+                  ) : (
+                    <TouchableOpacity onPress={() => !room.isOnline && setEditingId(player.id)}>
+                      <Text style={[styles.playerName, { color: theme.colors.text }]}>{player.name}</Text>
                     </TouchableOpacity>
+                  )}
+                </View>
+                <View style={styles.headerBtns}>
+                  {/* Hide/show history toggle — only your own card */}
+                  {own && (
+                    <TouchableOpacity
+                      style={[
+                        styles.iconBtnSm,
+                        { backgroundColor: player.hideHistory ? theme.colors.warning : theme.colors.surface,
+                          borderColor: theme.colors.border, borderWidth: 1 },
+                      ]}
+                      onPress={() => toggleHideHistory(player.id)}
+                    >
+                      <Ionicons
+                        name={player.hideHistory ? 'eye-off-outline' : 'eye-outline'}
+                        size={15}
+                        color={player.hideHistory ? '#fff' : theme.colors.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  )}
+                  {!room.isOnline && (
+                    <TouchableOpacity
+                      style={[styles.iconBtnSm, { backgroundColor: theme.colors.danger }]}
+                      onPress={() => removePlayer(player.id)}
+                    >
+                      <Ionicons name="close" size={15} color="#fff" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Dice selector grid */}
+              {editable && (
+                <View style={styles.dicePickerSection}>
+                  <View style={styles.diceGrid}>
+                    {DICE_TYPES.map((type) => {
+                      const count = counts[type] || 0;
+                      const active = count > 0;
+                      return (
+                        <View key={type} style={styles.diceCell}>
+                          <TouchableOpacity
+                            style={[
+                              styles.diceTypeCard,
+                              {
+                                backgroundColor: active ? theme.colors.primary : theme.colors.background,
+                                borderColor: active ? theme.colors.primary : theme.colors.border,
+                              },
+                            ]}
+                            onPress={() => addDice(player.id, type)}
+                          >
+                            <Text style={[styles.diceTypeName, { color: active ? '#fff' : theme.colors.text }]}>
+                              d{type}
+                            </Text>
+                            {active && (
+                              <View style={styles.countBadge}>
+                                <Text style={styles.countBadgeText}>{count}</Text>
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                          {active && (
+                            <TouchableOpacity
+                              style={[styles.removeOneDiceBtn, { backgroundColor: theme.colors.danger }]}
+                              onPress={() => removeDice(player.id, type)}
+                            >
+                              <Ionicons name="remove" size={12} color="#fff" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      );
+                    })}
                   </View>
-                  <View
-                    style={[
-                      styles.playerDiceList,
-                      { backgroundColor: theme.colors.card, borderColor: theme.colors.primary }
-                    ]}
-                  >
-                    {player.dice.map((dice) => (
-                      <View
-                        key={dice.id}
-                        style={[styles.diceChip, { backgroundColor: theme.colors.primary }]}
-                      >
-                        <Text style={styles.diceChipText}>d{dice.type}</Text>
-                        <TouchableOpacity
-                          style={styles.removeDiceButton}
-                          onPress={() => removeDiceFromPlayer(player.id, dice.id)}
-                        >
-                          <Text style={styles.removeDiceText}>×</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                </>
-              ) : (
-                <Text style={[styles.noDiceText, { color: theme.colors.textSecondary }]}>
-                  Tap dice below to add
+
+                  {/* Summary + clear */}
+                  {summary && (
+                    <View style={styles.summaryRow}>
+                      <Text style={[styles.summaryText, { color: theme.colors.textSecondary }]} numberOfLines={1}>
+                        {summary}
+                      </Text>
+                      <TouchableOpacity onPress={() => clearDice(player.id)}>
+                        <Text style={[styles.clearDiceText, { color: theme.colors.danger }]}>Clear</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Dice summary for observers (non-editable) */}
+              {!editable && (
+                <Text style={[styles.observerDice, { color: theme.colors.textSecondary }]}>
+                  {summary || 'No dice selected'}
                 </Text>
               )}
 
-              <View style={styles.diceGrid}>
-                {DICE_TYPES.map(dice => (
-                  <TouchableOpacity
-                    key={dice}
-                    style={[
-                      styles.diceButton,
-                      { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
-                    ]}
-                    onPress={() => addDiceToPlayer(player.id, dice)}
-                  >
-                    <Text style={[styles.diceButtonText, { color: theme.colors.primary }]}>d{dice}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* Roll Button */}
-            <TouchableOpacity
-              style={[
-                styles.rollButton,
-                {
-                  backgroundColor:
-                    player.dice.length === 0 ? theme.colors.border : theme.colors.primary
-                }
-              ]}
-              onPress={() => rollAllDiceForPlayer(player.id)}
-              disabled={player.dice.length === 0}
-            >
-              <Text style={styles.rollButtonText}>
-                🎲 Roll All Dice ({player.dice.length})
-              </Text>
-            </TouchableOpacity>
-
-            {/* Roll History */}
-            {player.rolls.length > 0 && (
-              <View style={[styles.rollHistory, { borderTopColor: theme.colors.border }]}>
-                <View style={styles.rollHistoryHeader}>
-                  <Text style={[styles.rollHistoryTitle, { color: theme.colors.textSecondary }]}>Recent Rolls:</Text>
-                  <TouchableOpacity
-                    style={[styles.clearHistoryButton, { backgroundColor: theme.colors.danger }]}
-                    onPress={() => clearPlayerRolls(player.id)}
-                  >
-                    <Text style={styles.clearHistoryButtonText}>Clear</Text>
-                  </TouchableOpacity>
-                </View>
-                <ScrollView
-                  style={styles.rollHistoryScroll}
-                  nestedScrollEnabled={true}
-                  showsVerticalScrollIndicator={true}
+              {/* Roll button */}
+              {editable && (
+                <TouchableOpacity
+                  style={[
+                    styles.rollBtn,
+                    {
+                      backgroundColor:
+                        totalDice === 0 || isAnimating
+                          ? theme.colors.border
+                          : theme.colors.primary,
+                    },
+                  ]}
+                  onPress={() => rollForPlayer(player.id)}
+                  disabled={totalDice === 0 || isAnimating}
                 >
-                  {player.rolls.map((roll) => (
-                    <View
-                      key={roll.id}
-                      style={[styles.rollItem, { backgroundColor: theme.colors.card }]}
-                    >
-                      <Text style={[styles.rollTime, { color: theme.colors.textSecondary }]}>
-                        {roll.timestamp}
-                      </Text>
-                      <View style={styles.rollResults}>
-                        <View style={styles.diceResults}>
-                          {roll.results.map((result, index) => (
-                            <View
-                              key={index}
-                              style={[
-                                styles.diceResultItem,
-                                {
-                                  backgroundColor: theme.colors.surface,
-                                  borderColor: theme.colors.primary
-                                }
-                              ]}
-                            >
-                              <Text style={[styles.diceResultType, { color: theme.colors.primary }]}>d{result.type}</Text>
-                              <Text style={[styles.diceResultValue, { color: theme.colors.text }]}>
-                                {result.result}
-                              </Text>
-                            </View>
-                          ))}
+                  <Ionicons name="dice-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={styles.rollBtnText}>
+                    {isAnimating ? 'Rolling...' : `Roll  (${totalDice} ${totalDice === 1 ? 'die' : 'dice'})`}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Roll history */}
+              {player.rolls.length > 0 && (
+                <View style={[styles.historySection, { borderTopColor: theme.colors.border }]}>
+                  <View style={styles.historyHeader}>
+                    <Text style={[styles.historyTitle, { color: theme.colors.textSecondary }]}>
+                      Roll History
+                      {own && player.hideHistory ? '  (hidden from others)' : ''}
+                    </Text>
+                    {editable && historyVisible && (
+                      <TouchableOpacity onPress={() => clearRolls(player.id)}>
+                        <Text style={[styles.clearHistoryText, { color: theme.colors.danger }]}>Clear</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {!historyVisible && (
+                    <Text style={[styles.hiddenNote, { color: theme.colors.textSecondary }]}>
+                      This player has hidden their roll history.
+                    </Text>
+                  )}
+
+                  {historyVisible && player.rolls.map((roll) => {
+                    // Group results by dice type for compact display
+                    const grouped = {};
+                    for (const r of roll.results) {
+                      if (!grouped[r.type]) grouped[r.type] = [];
+                      grouped[r.type].push(r.result);
+                    }
+                    return (
+                      <View key={roll.id} style={[styles.rollEntry, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}>
+                        <View style={styles.rollEntryTop}>
+                          <Text style={[styles.rollTimestamp, { color: theme.colors.textSecondary }]}>
+                            {roll.timestamp}
+                          </Text>
+                          <View style={[styles.totalBadge, { backgroundColor: theme.colors.success }]}>
+                            <Text style={styles.totalBadgeText}>{roll.total}</Text>
+                          </View>
                         </View>
-                        <Text style={[styles.rollTotal, { color: theme.colors.success }]}>= {roll.total}</Text>
+                        <View style={styles.rollResults}>
+                          {Object.entries(grouped)
+                            .sort((a, b) => Number(a[0]) - Number(b[0]))
+                            .map(([type, values]) =>
+                              values.map((val, i) => (
+                                <View
+                                  key={`${type}-${i}`}
+                                  style={[
+                                    styles.resultChip,
+                                    { backgroundColor: theme.colors.surface, borderColor: theme.colors.primary },
+                                  ]}
+                                >
+                                  <Text style={[styles.resultChipType, { color: theme.colors.primary }]}>d{type}</Text>
+                                  <Text style={[styles.resultChipValue, { color: theme.colors.text }]}>{val}</Text>
+                                </View>
+                              ))
+                            )}
+                        </View>
                       </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-          </View>
-        ))}
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          );
+        })}
 
-        <TouchableOpacity
-          style={[styles.addPlayerButton, { backgroundColor: theme.colors.primary }]}
-          onPress={addPlayer}
-        >
-          <Text style={styles.addPlayerButtonText}>+ Add Player</Text>
-        </TouchableOpacity>
-
-        <View
-          style={[
-            styles.infoSection,
-            { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
-          ]}
-        >
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>How to Use</Text>
-          <Text style={[styles.infoText, { color: theme.colors.textSecondary }]}>
-            • Each player can build their own dice set{'\n'}
-            • Tap dice types (d2-d100) to add them{'\n'}
-            • Selected dice shown in highlighted box{'\n'}
-            • Use "Roll All Players" to roll everyone at once{'\n'}
-            • Or roll individual players separately{'\n'}
-            • Remove dice by tapping × on the chip{'\n'}
-            • View roll history (last 10 rolls)
-          </Text>
-        </View>
+        {!room.isOnline && (
+          <TouchableOpacity
+            style={[styles.addPlayerBtn, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+            onPress={addPlayer}
+          >
+            <Ionicons name="person-add-outline" size={18} color={theme.colors.primary} style={{ marginRight: 8 }} />
+            <Text style={[styles.addPlayerBtnText, { color: theme.colors.primary }]}>Add Player</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
+
+      <RoomLobby
+        visible={showRoomLobby}
+        onClose={() => setShowRoomLobby(false)}
+        room={room}
+        gameType="DiceRoller"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
+  container: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
-  clearAllButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  clearAllButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  rollAllPlayersButton: {
-    borderRadius: 12,
-    padding: 16,
+  title: { fontSize: 30, fontWeight: 'bold' },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
   },
-  rollAllPlayersButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  playerCard: {
+
+  // Roll all
+  rollAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  rollAllBtnText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
+
+  // Player card
+  playerCard: {
+    borderRadius: 14,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 14,
     borderWidth: 1,
   },
   playerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  playerName: {
-    fontSize: 22,
-    fontWeight: '600',
+  playerHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  meBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  playerNameInput: {
-    fontSize: 22,
-    fontWeight: '600',
+  meBadgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold', letterSpacing: 0.5 },
+  playerName: { fontSize: 20, fontWeight: '700' },
+  nameInput: {
+    fontSize: 20,
+    fontWeight: '700',
     borderBottomWidth: 2,
-    padding: 4,
-    minWidth: 150,
+    minWidth: 120,
+    padding: 2,
   },
-  deleteButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  headerBtns: { flexDirection: 'row', gap: 6 },
+  iconBtnSm: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  deleteButtonText: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    lineHeight: 24,
-  },
-  diceSection: {
-    marginBottom: -30,
-    marginTop: 10
-  },
-  diceSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  diceSectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  clearDiceButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  clearDiceButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  playerDiceList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10,
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 2,
-  },
-  diceChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    paddingVertical: 5,
-    paddingLeft: 10,
-    paddingRight: 3,
-    gap: 5,
-  },
-  diceChipText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  removeDiceButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  deleteBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  removeDiceText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-    lineHeight: 14,
-  },
-  noDiceText: {
-    fontSize: 13,
-    fontStyle: 'italic',
-    marginBottom: 8,
-  },
+
+  // Dice picker
+  dicePickerSection: { marginBottom: 12 },
   diceGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-  },
-  diceButton: {
-    width: '18%',
-    aspectRatio: 1,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-  },
-  diceButtonText: {
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  rollButton: {
-    borderRadius: 10,
-    padding: 14,
-    alignItems: 'center',
-    marginTop: 10,
+    gap: 8,
     marginBottom: 10,
   },
-  rollButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+  diceCell: {
+    alignItems: 'center',
+    width: '18%',
   },
-  rollHistory: {
-    borderTopWidth: 1,
-    paddingTop: 12,
+  diceTypeCard: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  rollHistoryHeader: {
+  diceTypeName: { fontSize: 14, fontWeight: '700' },
+  countBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  countBadgeText: { fontSize: 11, fontWeight: 'bold', color: '#000' },
+  removeOneDiceBtn: {
+    marginTop: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Summary row
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 4,
+  },
+  summaryText: { fontSize: 13, flex: 1, fontWeight: '500' },
+  clearDiceText: { fontSize: 13, fontWeight: '600', paddingLeft: 12 },
+  observerDice: { fontSize: 13, fontStyle: 'italic', marginBottom: 10 },
+
+  // Roll button
+  rollBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    paddingVertical: 12,
+    marginTop: 4,
+  },
+  rollBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+
+  // History
+  historySection: { borderTopWidth: 1, marginTop: 14, paddingTop: 12 },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  historyTitle: { fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  clearHistoryText: { fontSize: 13, fontWeight: '600' },
+  hiddenNote: { fontSize: 13, fontStyle: 'italic', paddingVertical: 4 },
+
+  rollEntry: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 8,
+  },
+  rollEntryTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  rollHistoryScroll: {
-    maxHeight: 250,
-  },
-  rollHistoryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  clearHistoryButton: {
+  rollTimestamp: { fontSize: 12 },
+  totalBadge: {
+    minWidth: 36,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
   },
-  clearHistoryButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  rollItem: {
+  totalBadgeText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
+  rollResults: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  resultChip: {
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 6,
-  },
-  rollTime: {
-    fontSize: 12,
-    marginBottom: 6,
-  },
-  rollResults: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  diceResults: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    flex: 1,
-  },
-  diceResultItem: {
-    borderRadius: 6,
+    borderWidth: 1,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
+    paddingVertical: 5,
+    alignItems: 'center',
+  },
+  resultChipType: { fontSize: 10, fontWeight: '600', marginBottom: 1 },
+  resultChipValue: { fontSize: 18, fontWeight: 'bold' },
+
+  // Add player
+  addPlayerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
-  diceResultType: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  diceResultValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  rollTotal: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 10,
-  },
-  addPlayerButton: {
+    justifyContent: 'center',
     borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  addPlayerButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  infoSection: {
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 20,
     borderWidth: 1,
+    paddingVertical: 14,
+    marginTop: 4,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  infoText: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
+  addPlayerBtnText: { fontSize: 16, fontWeight: '600' },
 });
-
