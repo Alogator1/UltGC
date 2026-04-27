@@ -4,20 +4,13 @@ import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import GameCard from '../components/GameCard';
 import AdBanner from '../components/AdBanner';
-import { loadInterstitialAd, showInterstitialAd } from '../utils/ads';
+import { showInterstitialAd, showGameLaunchAd } from '../utils/ads';
 import { FREE_GAMES_COUNT, GAMES } from '../constants/games';
 
 export default function GamesScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const { theme } = useTheme();
   const { isPremium } = useSubscription();
-
-  // Load interstitial ad on mount (for free users)
-  useEffect(() => {
-    if (!isPremium) {
-      loadInterstitialAd();
-    }
-  }, [isPremium]);
 
   // Show interstitial when returning to this screen (from a game)
   useEffect(() => {
@@ -39,7 +32,7 @@ export default function GamesScreen({ navigation }) {
     );
   });
 
-  const handleGamePress = (game) => {
+  const handleGamePress = async (game) => {
     const originalIndex = GAMES.findIndex(g => g.route === game.route);
     if (!isPremium && originalIndex >= FREE_GAMES_COUNT) {
       Alert.alert(
@@ -52,7 +45,15 @@ export default function GamesScreen({ navigation }) {
       );
       return;
     }
-    navigation.navigate(game.route);
+
+    if (!isPremium) {
+      const adShown = await showGameLaunchAd(() => navigation.navigate(game.route));
+      if (!adShown) {
+        navigation.navigate(game.route);
+      }
+    } else {
+      navigation.navigate(game.route);
+    }
   };
 
   return (

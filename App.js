@@ -8,7 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { SubscriptionProvider } from './context/SubscriptionContext';
+import { SubscriptionProvider, useSubscription } from './context/SubscriptionContext';
+import { loadInterstitialAd } from './utils/ads';
 import GamesScreen from './screens/GamesScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import FAQScreen from './screens/FAQScreen';
@@ -126,7 +127,14 @@ export default function App() {
 
 function AppContent() {
   const { theme } = useTheme();
+  const { isPremium } = useSubscription();
   const appState = useRef(AppState.currentState);
+
+  useEffect(() => {
+    if (!isPremium) {
+      loadInterstitialAd();
+    }
+  }, [isPremium]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {

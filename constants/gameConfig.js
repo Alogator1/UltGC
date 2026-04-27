@@ -45,3 +45,6 @@ export const WORD_GUESS_DEFAULTS = {
 // Online multiplayer constants
 export const HEARTBEAT_INTERVAL = 30000; // 30 seconds
 export const STALE_ROOM_THRESHOLD = 24 * 60 * 60 * 1000; // 24 hours
+
+// Ad cooldown — minimum ms between game-launch interstitials
+export const GAME_LAUNCH_AD_COOLDOWN_MS = 1 * 60 * 1000; // 1 minute
