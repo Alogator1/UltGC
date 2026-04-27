@@ -15,16 +15,23 @@
 App.js                        # Root: providers + navigation setup
 ├── components/
 │   ├── AdBanner.js           # Google AdMob banner (hides for premium)
-│   └── GameCard.js           # Game list card with lock/emoji
-├── context/
-│   ├── ThemeContext.js        # Light/dark theme (persisted)
-│   └── SubscriptionContext.js # Premium subscription state (persisted)
+│   ├── GameCard.js           # Game list card with lock/emoji
+│   ├── OnlineBanner.js       # Online multiplayer banner
+│   └── RoomLobby.js          # Online room management
+├── config/
+│   └── firebase.js           # Firebase initialization with env vars
 ├── constants/
 │   ├── colors.js             # Theme palettes + per-game color arrays
 │   ├── games.js              # Game list metadata (emoji, description, route)
 │   ├── gameConfig.js         # Storage keys, timeouts, dice types, scoring tables
 │   ├── playerNames.js        # Default player name helpers
 │   └── words.json            # Word list for WordGuess game
+├── context/
+│   ├── AuthContext.js        # Firebase anonymous authentication
+│   ├── ThemeContext.js       # Light/dark theme (persisted)
+│   └── SubscriptionContext.js # Premium subscription state (persisted)
+├── hooks/
+│   └── useRoom.js            # Online room management hook
 ├── screens/                  # One file per screen (15 total)
 │   ├── GamesScreen.js        # Home — searchable game list
 │   ├── SettingsScreen.js     # Theme toggle, premium toggle
@@ -42,13 +49,14 @@ App.js                        # Root: providers + navigation setup
 │   ├── AzulScreen.js         # Tile placement + floor penalties
 │   └── WordGuessScreen.js    # Timed team word-guessing
 └── utils/
-    └── ads.js                # Interstitial ad load/show helpers
+    ├── ads.js                # Interstitial ad load/show helpers
+    └── roomCode.js           # Room code generation utilities
 ```
 
 ## Navigation
 
 Bottom tabs (3):
-1. **Games** — Stack navigator containing `GamesScreen` + all 13 game screens
+1. **Games** — Stack navigator containing `GamesScreen` + all 12 game screens
 2. **FAQ** — Single `FAQScreen`
 3. **Settings** — Single `SettingsScreen`
 
@@ -56,6 +64,7 @@ Route names match PascalCase: `Counter`, `Munchkin`, `TicketToRide`, `Uno`, `Dic
 
 ## State Management
 
+- **AuthContext** — `useAuth()` returns `{ user, isAuthReady }`. Handles Firebase anonymous authentication.
 - **ThemeContext** — `useTheme()` returns `{ theme, isDark, toggleTheme }`. Colors at `theme.colors.*`.
 - **SubscriptionContext** — `useSubscription()` returns `{ isPremium, toggleSubscription }`.
 - **Local state** — Each screen manages its own `useState` / `useEffect` / `useRef`.
@@ -71,7 +80,7 @@ Route names match PascalCase: `Counter`, `Munchkin`, `TicketToRide`, `Uno`, `Dic
 
 ## Monetization
 
-- **Free tier:** 4 games (Player Selector, Fortune Orb, Counter, Dice Roller) + banner ads + 30% chance interstitial on returning to games list.
+- **Free tier:** 5 games (Player Selector, Fortune Orb, Counter, Dice Roller, Tic Tac Toe) + banner ads + 30% chance interstitial on returning to games list.
 - **Premium:** All games unlocked + ad-free. Toggled in Settings, stored as `isPremium` in AsyncStorage.
 - **AdBanner** component conditionally renders; gracefully falls back if ad module unavailable.
 - Ad unit IDs use `TestIds` in dev; production IDs go in `app.json` and `utils/ads.js`.
@@ -80,7 +89,7 @@ Route names match PascalCase: `Counter`, `Munchkin`, `TicketToRide`, `Uno`, `Dic
 
 1. **Create screen** — `screens/YourGameScreen.js`. Follow existing pattern: `useTheme()`, `useSubscription()`, local state, `StyleSheet.create()` at bottom.
 2. **Register route** — In `App.js`, import the screen and add a `<Stack.Screen name="YourGame" component={YourGameScreen} options={{ title: 'Your Game' }} />` inside the Games stack.
-3. **Add to games list** — In `constants/games.js`, add an entry: `{ name: 'Your Game', emoji: '...', description: '...', route: 'YourGame' }`. The first 4 entries are free; anything after requires premium.
+3. **Add to games list** — In `constants/games.js`, add an entry: `{ name: 'Your Game', emoji: '...', description: '...', route: 'YourGame' }`. The first 5 entries are free; anything after requires premium.
 4. **Storage key** — If game state needs persistence, add a key to `STORAGE_KEYS` in `constants/gameConfig.js` and use `AsyncStorage.setItem/getItem` in the screen.
 5. **Game-specific colors** — If the game needs a color palette (e.g., per-player colors), add an array to `constants/colors.js`.
 6. **Game-specific config** — Scoring tables, default values, etc. go in `constants/gameConfig.js`.
@@ -118,6 +127,7 @@ npx expo start --web    # Web browser
 | `@react-native-async-storage/async-storage` | All local persistence |
 | `@react-navigation/*` | Bottom tabs + native stack |
 | `@expo/vector-icons` | Ionicons throughout the UI |
+| `firebase` | Authentication and Firestore for online multiplayer |
 
 ## Gotchas
 
@@ -126,3 +136,4 @@ npx expo start --web    # Web browser
 - `words.json` is a flat JSON file with categories — loaded synchronously via `require()`.
 - Seven Wonders science scoring uses a specific formula: `(compass² + gear² + tablet²) + (7 × min(compass, gear, tablet))`.
 - Azul floor penalties follow a fixed array: `[-1, -1, -2, -2, -2, -3, -3]`.
+- Firebase config is loaded from environment variables in `.env` file.

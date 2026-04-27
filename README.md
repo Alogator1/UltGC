@@ -1,53 +1,86 @@
 # UltGC - Ultimate Game Companion
 
-A React Native Expo app for managing and playing various board games with friends.
+A React Native Expo app for managing and playing various board games with friends, featuring both local and online multiplayer modes.
 
 ## Features
 
-- � **10 Game Utilities:**
+- 🎮 **12 Game Utilities:**
   - 👆 **Player Selector** - Random player selection tool
   - 🔮 **Fortune Orb** (Magic 8 Ball) - Get answers to your questions
-  - 🔢 **Counter** - Simple score tracking
-  - 🎲 **Dice Roller** - Multi-dice roller with history for players
+  - 🔢 **Counter** - Simple +/- score counter
+  - 🎲 **Dice Roller** - Multi-dice roller with history
+  - ⭕ **Tic Tac Toe** - Classic strategy game
   - 🏝️ **Catan** - Victory points, dice rolling, longest road tracking
   - ⚔️ **Munchkin** - Level, gear, and battle calculator
   - 🏛️ **7 Wonders** - Complete scoring system for all categories
-  - 🚂 **Ticket to Ride** - Route and destination tracking
-  - 🎴 **UNO** - Round-based score tracking
-  - 🎨 **Azul** - Wall tiling, floor penalties, end game bonuses
-- 🎉 **Free to Use** - First 4 games are completely free
+  - 🚂 **Ticket to Ride** - Route-based scoring
+  - 🎴 **UNO** - Round-based cumulative scoring
+  - 🎨 **Azul** - Tile placement + floor penalties
+  - 🎯 **Word Guess** - Timed team word-guessing
+- 🌐 **Online Multiplayer** - Play games with friends remotely using Firebase
+- 🎉 **Free to Use** - First 5 games are completely free
 - 💳 **Premium Subscription** - Unlock all games and remove ads
 - 📱 Cross-platform (iOS, Android, Web)
 - 🎨 Dark/Light theme support
 - 💾 Auto-save game data locally
 - 🎯 Bottom tab navigation
-- ⚙️ Settings screen with subscription management
+- ⚙️ Settings screen with theme and subscription management
 - ❓ Comprehensive FAQ screen
+- 📢 Ad-supported with Google AdMob
 
 ## Project Structure
 
 ```
 UltGC/
-├── App.js                 # Main app component with navigation
-├── app.json              # Expo configuration
-├── package.json          # Dependencies
-├── babel.config.js       # Babel configuration
-├── components/           # Reusable components
-│   └── GameCard.js       # Game card component
-├── screens/              # Screen components
-│   ├── GamesScreen.js    # Games list
-│   ├── CounterScreen.js
-│   ├── MunchkinScreen.js
-│   ├── TicketToRideScreen.js
-│   ├── UnoScreen.js
-│   ├── DiceRollerScreen.js
-│   ├── CatanScreen.js
-│   ├── SevenWondersScreen.js
-│   ├── SettingsScreen.js
-│   └── FAQScreen.js
-├── assets/               # Images and other assets
-└── node_modules/         # Dependencies
-
+├── App.js                    # Root: providers + navigation setup
+├── app.json                  # Expo configuration
+├── package.json              # Dependencies
+├── babel.config.js           # Babel configuration
+├── .env                      # Environment variables (Firebase config)
+├── .gitignore                # Git ignore rules
+├── README.md                 # This file
+├── CLAUDE.md                 # AI assistant guide
+├── assets/                   # Images and other assets
+├── components/               # Reusable components
+│   ├── AdBanner.js           # Google AdMob banner (hides for premium)
+│   ├── GameCard.js           # Game list card with lock/emoji
+│   ├── OnlineBanner.js       # Online multiplayer banner
+│   └── RoomLobby.js          # Online room management
+├── config/                   # Configuration files
+│   └── firebase.js           # Firebase initialization
+├── constants/                # App constants
+│   ├── colors.js             # Theme palettes + per-game colors
+│   ├── games.js              # Game list metadata
+│   ├── gameConfig.js         # Storage keys, timeouts, scoring tables
+│   ├── playerNames.js        # Default player name helpers
+│   └── words.json            # Word list for WordGuess game
+├── context/                  # React contexts
+│   ├── AuthContext.js        # Firebase authentication
+│   ├── ThemeContext.js       # Light/dark theme
+│   └── SubscriptionContext.js # Premium subscription state
+├── hooks/                    # Custom React hooks
+│   └── useRoom.js            # Online room management
+├── screens/                  # Screen components (15 total)
+│   ├── GamesScreen.js        # Home — searchable game list
+│   ├── SettingsScreen.js     # Theme toggle, premium toggle
+│   ├── FAQScreen.js          # Accordion FAQ
+│   ├── CounterScreen.js      # Simple +/- score counter
+│   ├── DiceRollerScreen.js   # Multi-dice with history
+│   ├── PlayerSelectorScreen.js # Multi-touch random selector
+│   ├── Magic8BallScreen.js   # Shake-to-reveal fortune orb
+│   ├── TicTacToeScreen.js    # Classic tic-tac-toe
+│   ├── MunchkinScreen.js     # Battle calculator
+│   ├── TicketToRideScreen.js # Route-based scoring
+│   ├── CatanScreen.js        # Victory point tracker
+│   ├── SevenWondersScreen.js # Full 7-category scoring
+│   ├── UnoScreen.js          # Round-based cumulative scoring
+│   ├── AzulScreen.js         # Tile placement + floor penalties
+│   └── WordGuessScreen.js    # Timed team word-guessing
+├── utils/                    # Utility functions
+│   ├── ads.js                # Interstitial ad helpers
+│   └── roomCode.js           # Room code generation
+└── ios/                      # iOS native code
+    └── ...                   # Xcode project files
 ```
 
 ## Getting Started
@@ -70,7 +103,9 @@ cd UltGC
 npm install
 ```
 
-3. Start the development server:
+3. Create a `.env` file with your Firebase configuration (copy from `.env.example`)
+
+4. Start the development server:
 ```bash
 npm start
 ```
@@ -92,25 +127,36 @@ npm start
   npm run web
   ```
 
+## Online Multiplayer
+
+Several games support real-time multiplayer using Firebase Firestore:
+
+- Create or join rooms with unique codes
+- Real-time synchronization of game state
+- Anonymous authentication for seamless play
+- Supported games: Counter, Tic Tac Toe, Catan, Munchkin, 7 Wonders, Ticket to Ride, UNO, Azul, Word Guess
+
+To enable online features, configure your Firebase project and add the credentials to `.env`.
+
 ## Technologies Used
 
 - **React Native** - Cross-platform mobile framework
 - **Expo** - Development platform and tooling
-- **React Navigation** - Navigation library with bottom tabs and stack navigation
+- **Firebase** - Authentication, Firestore for online multiplayer
+- **React Navigation** - Bottom tabs and stack navigation
 - **AsyncStorage** - Local data persistence
-- **React 19** - Latest React version
-- **Google AdMob** - Ad monetization for free tier
-- **Context API** - State management for theme and subscription
+- **Google AdMob** - Mobile advertising
+- **Expo Sensors** - Device accelerometer for Magic 8 Ball
 
 ## Monetization Model
 
 ### Free Tier
-- Access to 4 games: Player Selector, Fortune Orb, Counter, and Dice Roller
+- Access to 5 games: Player Selector, Fortune Orb, Counter, Dice Roller, and Tic Tac Toe
 - Banner ads displayed at bottom of screens
 - Occasional interstitial ads
 
 ### Premium Subscription
-- Unlocks all 10 games
+- Unlocks all 12 games
 - Complete ad-free experience
 - Support ongoing development
 - One-time or recurring purchase available in Settings
