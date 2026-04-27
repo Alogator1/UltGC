@@ -1,28 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TextInput, Alert } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import GameCard from '../components/GameCard';
 import AdBanner from '../components/AdBanner';
-import { showInterstitialAd, showGameLaunchAd } from '../utils/ads';
+import { showGameLaunchAd } from '../utils/ads';
 import { FREE_GAMES_COUNT, GAMES } from '../constants/games';
 
 export default function GamesScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const { theme } = useTheme();
   const { isPremium } = useSubscription();
-
-  // Show interstitial when returning to this screen (from a game)
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      // Only show interstitial sometimes (e.g., 30% chance) to not annoy users
-      if (!isPremium && Math.random() < 0.3) {
-        showInterstitialAd();
-      }
-    });
-
-    return unsubscribe;
-  }, [navigation, isPremium]);
 
   const filteredGames = GAMES.filter(game => {
     const query = searchQuery.toLowerCase();

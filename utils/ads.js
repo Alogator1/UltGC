@@ -15,11 +15,14 @@ try {
   adsAvailable = false;
 }
 
-const PROD_INTERSTITIAL_ID = 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyy'; // TODO: replace with real AdMob unit ID
+// Flip to false once AdMob account is approved
+const USE_TEST_ADS = true;
+
+const PROD_INTERSTITIAL_ID = process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID || '';
 
 const getInterstitialAdUnitId = () => {
   if (!adsAvailable) return '';
-  if (__DEV__ || PROD_INTERSTITIAL_ID.includes('xxx')) return TestIds.INTERSTITIAL;
+  if (USE_TEST_ADS || __DEV__ || !PROD_INTERSTITIAL_ID) return TestIds.INTERSTITIAL;
   return PROD_INTERSTITIAL_ID;
 };
 

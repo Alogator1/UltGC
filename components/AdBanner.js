@@ -15,12 +15,15 @@ try {
   loadError = e.message;
 }
 
-// Use test IDs for now - replace with real IDs before publishing
+// Flip to false once AdMob account is approved
+const USE_TEST_ADS = true;
+
+const PROD_BANNER_ID = process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || '';
+
 const getAdUnitId = () => {
   if (!adsModule || !TestIds) return '';
-  // TODO: Replace with your real ad unit ID before publishing
-  // return 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyy';
-  return TestIds.BANNER; // Using test ID for all builds during development
+  if (USE_TEST_ADS || __DEV__ || !PROD_BANNER_ID) return TestIds.BANNER;
+  return PROD_BANNER_ID;
 };
 
 export default function AdBanner() {

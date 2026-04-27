@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, Switch, TextInput } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert, Linking, Switch, TextInput, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useAuth } from '../context/AuthContext';
-import { FREE_GAMES_COUNT } from '../constants/games'
+import { FREE_GAMES_COUNT } from '../constants/games';
 
 export default function SettingsScreen() {
   const { isDarkMode, toggleTheme, theme } = useTheme();
-  const { isPremium, togglePremium } = useSubscription();
+  const { isPremium, isLoading, product, purchasePremium, restorePurchases } = useSubscription();
   const { displayName, updateDisplayName } = useAuth();
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(displayName);
@@ -101,15 +101,37 @@ export default function SettingsScreen() {
 
       <View style={[styles.section, { backgroundColor: theme.colors.background }]}>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Subscription</Text>
-        <View style={[styles.themeToggle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-          <View>
-            <Text style={[styles.themeLabel, { color: theme.colors.text }]}>Premium Mode</Text>
+        {isPremium ? (
+          <View style={[styles.premiumActive, { backgroundColor: theme.colors.surface, borderColor: theme.colors.success }]}>
+            <Text style={[styles.premiumActiveTitle, { color: theme.colors.success }]}>Premium Active</Text>
             <Text style={[styles.toggleSubtext, { color: theme.colors.textSecondary }]}>
-              {isPremium ? 'All games unlocked' : `Only ${FREE_GAMES_COUNT} games available`}
+              All games unlocked · No ads
             </Text>
           </View>
-          <Switch value={isPremium} onValueChange={togglePremium} />
-        </View>
+        ) : (
+          <View style={[styles.premiumCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <Text style={[styles.themeLabel, { color: theme.colors.text }]}>UltGC Premium</Text>
+            <Text style={[styles.toggleSubtext, { color: theme.colors.textSecondary }]}>
+              Unlock all games · Remove ads
+            </Text>
+            <TouchableOpacity
+              style={[styles.purchaseButton, { backgroundColor: theme.colors.primary }, isLoading && styles.purchaseButtonDisabled]}
+              onPress={purchasePremium}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.purchaseButtonText}>
+                  {product ? `${product.displayPrice} / month` : 'Get Premium'}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+        <TouchableOpacity onPress={restorePurchases} disabled={isLoading}>
+          <Text style={[styles.restoreText, { color: theme.colors.primary }]}>Restore Purchases</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.section, { backgroundColor: theme.colors.background }]}>
@@ -125,6 +147,17 @@ export default function SettingsScreen() {
         <TouchableOpacity style={styles.dangerButton} onPress={clearAllData}>
           <Text style={styles.dangerButtonText}>Clear All Game Data</Text>
         </TouchableOpacity>
+        {__DEV__ && (
+          <TouchableOpacity
+            style={[styles.dangerButton, { marginTop: 8, backgroundColor: '#666' }]}
+            onPress={async () => {
+              await AsyncStorage.removeItem('isPremium');
+              Alert.alert('Dev', 'Premium status cleared. Restart the app.');
+            }}
+          >
+            <Text style={styles.dangerButtonText}>[DEV] Reset Premium</Text>
+          </TouchableOpacity>
+        )}
         <Text style={[styles.helpText, { color: theme.colors.textSecondary }]}>
           This will permanently delete all saved game data for all games. This action cannot be undone.
         </Text>
@@ -214,5 +247,42 @@ const styles = StyleSheet.create({
   aboutText: {
     fontSize: 14,
     lineHeight: 22,
+  },
+  premiumActive: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    marginBottom: 10,
+  },
+  premiumActiveTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  premiumCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+    gap: 10,
+  },
+  purchaseButton: {
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  purchaseButtonDisabled: {
+    opacity: 0.6,
+  },
+  purchaseButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  restoreText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingVertical: 4,
   },
 });
