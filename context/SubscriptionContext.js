@@ -83,6 +83,7 @@ export const SubscriptionProvider = ({ children }) => {
   const purchasePremium = async () => {
     setIsLoading(true);
     try {
+      // v15 API: requestPurchase with platform-specific request object
       await requestPurchase({
         type: 'subs',
         request: {

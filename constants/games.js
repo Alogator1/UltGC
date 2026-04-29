@@ -1,5 +1,5 @@
 // Number of free games before premium is required
-export const FREE_GAMES_COUNT = 5;
+export const FREE_GAMES_COUNT = 6;
 
 // Available games list
 export const GAMES = [
@@ -25,12 +25,18 @@ export const GAMES = [
     name: '🎲 Dice Roller',
     description: 'Roll multiple dice types for players and track results',
     route: 'DiceRoller',
-    supportsOnline: false,
+    supportsOnline: true,
   },
   {
     name: '⭕ Tic Tac Toe',
-    description: 'Classic strategy game - get three in a row to win',
+    description: 'Classic strategy game - get three in a row to win, or play against AI',
     route: 'TicTacToe',
+    supportsOnline: true,
+  },
+  {
+    name: '🪨 Rock Paper Scissors',
+    description: 'Quick battle - rock beats scissors, scissors beats paper, paper beats rock',
+    route: 'RockPaperScissors',
     supportsOnline: true,
   },
   {
@@ -73,6 +79,12 @@ export const GAMES = [
     name: '🎯 Word Guess',
     description: 'Explain words to your team - swipe to guess or skip',
     route: 'WordGuess',
+    supportsOnline: false,
+  },
+  {
+    name: '🎲 Yahtzee',
+    description: 'Roll five dice up to three times and score 13 categories to win',
+    route: 'Yahtzee',
     supportsOnline: true,
   },
 ];

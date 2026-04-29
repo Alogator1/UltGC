@@ -3,13 +3,15 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
 
-export default function UnoScreen() {
+export default function UnoScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { isPremium } = useSubscription();
   const room = useRoom('Uno');
   const [showRoomLobby, setShowRoomLobby] = useState(false);
 
@@ -78,8 +80,18 @@ export default function UnoScreen() {
       }
     };
     loadGameData();
+    if (route.params?.joinRoomOnly && !isPremium) {
+      setShowRoomLobby(true);
+    }
     return () => { room.deleteRoom(); };
   }, []);
+
+  const handleCloseLobby = () => {
+    setShowRoomLobby(false);
+    if (route.params?.joinRoomOnly && !room.isOnline) {
+      navigation.goBack();
+    }
+  };
 
   useEffect(() => {
     if (room.isOnline) return;
@@ -390,7 +402,7 @@ export default function UnoScreen() {
             )}
           </View>
         </ScrollView>
-        <RoomLobby visible={showRoomLobby} onClose={() => setShowRoomLobby(false)} room={room} gameType="Uno" />
+        <RoomLobby visible={showRoomLobby} onClose={handleCloseLobby} room={room} gameType="Uno" />
       </View>
     );
   }
@@ -506,7 +518,7 @@ export default function UnoScreen() {
         </View>
       </Modal>
 
-      <RoomLobby visible={showRoomLobby} onClose={() => setShowRoomLobby(false)} room={room} gameType="Uno" />
+      <RoomLobby visible={showRoomLobby} onClose={handleCloseLobby} room={room} gameType="Uno" />
     </View>
   );
 }

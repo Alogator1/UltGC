@@ -23,14 +23,26 @@ export default function GamesScreen({ navigation }) {
   const handleGamePress = async (game) => {
     const originalIndex = GAMES.findIndex(g => g.route === game.route);
     if (!isPremium && originalIndex >= FREE_GAMES_COUNT) {
-      Alert.alert(
-        'Premium Required',
-        'This game is only available for premium users. Enable premium in Settings to unlock all games.',
-        [
-          { text: 'OK', style: 'cancel' },
-          { text: 'Go to Settings', onPress: () => navigation.navigate('Settings') },
-        ]
-      );
+      if (game.supportsOnline) {
+        Alert.alert(
+          'Premium Required',
+          'This game requires Premium to play locally. You can join an online room for free.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Go to Settings', onPress: () => navigation.navigate('Settings') },
+            { text: 'Join Room', onPress: () => navigation.navigate(game.route, { joinRoomOnly: true }) },
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Premium Required',
+          'This game is only available for premium users. Enable premium in Settings to unlock all games.',
+          [
+            { text: 'OK', style: 'cancel' },
+            { text: 'Go to Settings', onPress: () => navigation.navigate('Settings') },
+          ]
+        );
+      }
       return;
     }
 

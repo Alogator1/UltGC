@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
@@ -12,8 +13,9 @@ const STORAGE_KEY = 'catanGameData';
 const PLAYER_COLORS = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#9B59B6', '#1ABC9C'];
 const EMPTY_DICE = { dice1: 1, dice2: 1, total: 2 };
 
-export default function CatanScreen() {
+export default function CatanScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { isPremium } = useSubscription();
   const room = useRoom('Catan');
   const [showRoomLobby, setShowRoomLobby] = useState(false);
 
@@ -44,13 +46,18 @@ export default function CatanScreen() {
   };
 
   // Derive display players list
+  const onlineColorMap = room.isOnline
+    ? [...room.players]
+        .sort((a, b) => (a.joinedAt?.seconds ?? 0) - (b.joinedAt?.seconds ?? 0))
+        .reduce((acc, p, i) => ({ ...acc, [p.id]: PLAYER_COLORS[i % PLAYER_COLORS.length] }), {})
+    : {};
   const players = room.isOnline
     ? [...room.players]
         .sort((a, b) => (b.id === room.userId ? 1 : 0) - (a.id === room.userId ? 1 : 0))
-        .map((p, i) => ({
+        .map((p) => ({
           id: p.id,
           name: p.displayName,
-          color: PLAYER_COLORS[i % PLAYER_COLORS.length],
+          color: onlineColorMap[p.id],
           settlements: p.playerData?.settlements ?? 0,
           cities: p.playerData?.cities ?? 0,
           devCards: p.playerData?.devCards ?? 0,
@@ -72,8 +79,18 @@ export default function CatanScreen() {
 
   useEffect(() => {
     loadData();
+    if (route.params?.joinRoomOnly && !isPremium) {
+      setShowRoomLobby(true);
+    }
     return () => { room.deleteRoom(); };
   }, []);
+
+  const handleCloseLobby = () => {
+    setShowRoomLobby(false);
+    if (route.params?.joinRoomOnly && !room.isOnline) {
+      navigation.goBack();
+    }
+  };
 
   useEffect(() => {
     if (room.isOnline) return;
@@ -459,7 +476,7 @@ export default function CatanScreen() {
 
       <RoomLobby
         visible={showRoomLobby}
-        onClose={() => setShowRoomLobby(false)}
+        onClose={handleCloseLobby}
         room={room}
         gameType="Catan"
       />

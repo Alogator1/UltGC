@@ -20,6 +20,11 @@ export default function TicTacToeScreen() {
   const [isXNext, setIsXNext] = useState(true);
   const [scores, setScores] = useState(EMPTY_SCORES);
 
+  // ── AI state ──────────────────────────────────────────────────────────────────
+  const [vsAI, setVsAI] = useState(false);
+  const [aiDifficulty, setAiDifficulty] = useState('hard');
+  const [isAIThinking, setIsAIThinking] = useState(false);
+
   // ── Online state (read from sharedState) ─────────────────────────────────────
   const onlineBoard    = room.sharedState?.board    ?? INITIAL_BOARD;
   const onlineIsXNext  = room.sharedState?.isXNext  ?? true;
@@ -94,6 +99,28 @@ export default function TicTacToeScreen() {
     return () => { room.deleteRoom(); };
   }, []);
 
+  // ── AI move trigger ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!vsAI || room.isOnline) return;
+    if (winner || isDraw) return;
+    if (isXNext) return; // human plays X
+
+    setIsAIThinking(true);
+    const timer = setTimeout(() => {
+      const move = getAIMove([...board], 'O', 'X', aiDifficulty);
+      if (move !== null) {
+        setBoard((prev) => {
+          const next = [...prev];
+          next[move] = 'O';
+          return next;
+        });
+        setIsXNext(true);
+      }
+      setIsAIThinking(false);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [board, isXNext, vsAI, winner, isDraw, aiDifficulty, room.isOnline]);
+
   // ── Actions ──────────────────────────────────────────────────────────────────
 
   const handlePress = (index) => {
@@ -136,6 +163,7 @@ export default function TicTacToeScreen() {
       }
     } else {
       if (board[index] || winner) return;
+      if (vsAI && (!isXNext || isAIThinking)) return; // AI's turn or thinking
       const newBoard = [...board];
       newBoard[index] = isXNext ? 'X' : 'O';
       setBoard(newBoard);
@@ -157,6 +185,13 @@ export default function TicTacToeScreen() {
       setBoard(INITIAL_BOARD);
       setIsXNext(true);
     }
+  };
+
+  const toggleVsAI = () => {
+    setVsAI((v) => !v);
+    setBoard(INITIAL_BOARD);
+    setIsXNext(true);
+    setIsAIThinking(false);
   };
 
   const resetGame = () => {
@@ -240,6 +275,14 @@ export default function TicTacToeScreen() {
           <View style={styles.headerActions}>
             {!room.isOnline && (
               <TouchableOpacity
+                style={[styles.iconBtn, { backgroundColor: vsAI ? theme.colors.warning : theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }]}
+                onPress={toggleVsAI}
+              >
+                <Text style={{ fontSize: 16 }}>🤖</Text>
+              </TouchableOpacity>
+            )}
+            {!room.isOnline && (
+              <TouchableOpacity
                 style={[styles.iconBtn, { backgroundColor: theme.colors.primary }]}
                 onPress={() => setShowRoomLobby(true)}
               >
@@ -255,6 +298,24 @@ export default function TicTacToeScreen() {
           </View>
         </View>
 
+        {/* AI difficulty selector */}
+        {vsAI && !room.isOnline && (
+          <View style={[styles.difficultyRow, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+            <Text style={[styles.diffLabel, { color: theme.colors.textSecondary }]}>🤖 Difficulty:</Text>
+            {['easy', 'medium', 'hard'].map((d) => (
+              <TouchableOpacity
+                key={d}
+                style={[styles.diffBtn, { borderColor: theme.colors.border }, aiDifficulty === d && { backgroundColor: theme.colors.primary }]}
+                onPress={() => { setAiDifficulty(d); setBoard(INITIAL_BOARD); setIsXNext(true); setIsAIThinking(false); }}
+              >
+                <Text style={[styles.diffBtnText, { color: aiDifficulty === d ? '#fff' : theme.colors.text }]}>
+                  {d[0].toUpperCase() + d.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
         {/* Online symbol badge */}
         {room.isOnline && mySymbol && (
           <View style={[styles.symbolBadge, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
@@ -269,7 +330,7 @@ export default function TicTacToeScreen() {
         <View style={[styles.scoreboard, { backgroundColor: theme.colors.card }]}>
           <View style={styles.scoreItem}>
             <Text style={[styles.scoreLabel, { color: '#FF6B6B' }]} numberOfLines={1}>
-              {nameForSymbol('X')}
+              {vsAI ? 'You (X)' : nameForSymbol('X')}
             </Text>
             <Text style={[styles.scoreValue, { color: theme.colors.text }]}>{activeScores.X}</Text>
           </View>
@@ -279,7 +340,7 @@ export default function TicTacToeScreen() {
           </View>
           <View style={styles.scoreItem}>
             <Text style={[styles.scoreLabel, { color: '#4ECDC4' }]} numberOfLines={1}>
-              {nameForSymbol('O')}
+              {vsAI ? '🤖 AI' : nameForSymbol('O')}
             </Text>
             <Text style={[styles.scoreValue, { color: theme.colors.text }]}>{activeScores.O}</Text>
           </View>
@@ -307,6 +368,8 @@ export default function TicTacToeScreen() {
                   ? 'Draw!'
                   : room.isOnline
                   ? (isMyTurn ? 'Your turn' : "Opponent's turn")
+                  : vsAI
+                  ? (isXNext ? 'Your turn (X)' : isAIThinking ? '🤖 Thinking…' : '🤖 AI\'s turn')
                   : `Next: ${activeIsXNext ? 'X' : 'O'}`}
               </Text>
               {!winner && !isDraw && (
@@ -369,6 +432,71 @@ function getWinningLine(board) {
     if (board[a] && board[a] === board[b] && board[a] === board[c]) return line;
   }
   return null;
+}
+
+// ── AI logic ───────────────────────────────────────────────────────────────────
+
+function minimax(board, isMaximizing, aiSym, humanSym) {
+  const w = calculateWinner(board);
+  if (w === aiSym) return 10;
+  if (w === humanSym) return -10;
+  if (board.every((c) => c !== null)) return 0;
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (!board[i]) {
+        board[i] = aiSym;
+        best = Math.max(best, minimax(board, false, aiSym, humanSym));
+        board[i] = null;
+      }
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (!board[i]) {
+        board[i] = humanSym;
+        best = Math.min(best, minimax(board, true, aiSym, humanSym));
+        board[i] = null;
+      }
+    }
+    return best;
+  }
+}
+
+function getAIMove(board, aiSym, humanSym, difficulty) {
+  const empty = board.reduce((acc, v, i) => (v === null ? [...acc, i] : acc), []);
+  if (!empty.length) return null;
+
+  if (difficulty === 'easy') {
+    if (Math.random() < 0.75) return empty[Math.floor(Math.random() * empty.length)];
+  }
+
+  if (difficulty === 'medium') {
+    for (const i of empty) {
+      board[i] = aiSym;
+      if (calculateWinner(board)) { board[i] = null; return i; }
+      board[i] = null;
+    }
+    for (const i of empty) {
+      board[i] = humanSym;
+      if (calculateWinner(board)) { board[i] = null; return i; }
+      board[i] = null;
+    }
+    return empty[Math.floor(Math.random() * empty.length)];
+  }
+
+  // hard: full minimax
+  let bestScore = -Infinity;
+  let bestMove = empty[0];
+  for (const i of empty) {
+    board[i] = aiSym;
+    const score = minimax(board, false, aiSym, humanSym);
+    board[i] = null;
+    if (score > bestScore) { bestScore = score; bestMove = i; }
+  }
+  return bestMove;
 }
 
 // ── Styles ─────────────────────────────────────────────────────────────────────
@@ -467,6 +595,26 @@ const styles = StyleSheet.create({
   cellText: { fontSize: 40, fontWeight: 'bold' },
   winningCell: { backgroundColor: '#FFD700' },
   winningCellText: { transform: [{ scale: 1.2 }] },
+
+  difficultyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 8,
+    gap: 8,
+    width: '100%',
+  },
+  diffLabel: { fontSize: 13, marginRight: 4 },
+  diffBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  diffBtnText: { fontSize: 13, fontWeight: '600' },
 
   newGameButton: {
     width: '100%',

@@ -11,14 +11,24 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.groltor.ultgc"
+      "bundleIdentifier": "com.groltor.ultgc",
+      "buildNumber": "1",
+      "infoPlist": {
+        "SKPaymentQueueTransactionObserver": true
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       },
-      "package": "com.groltor.ultgc"
+      "package": "com.groltor.ultgc",
+      "versionCode": 1
     },
-    "plugins": []
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "24b3382e-ab12-4d20-a906-3c8bb52a182e"
+      }
+    }
   }
 }

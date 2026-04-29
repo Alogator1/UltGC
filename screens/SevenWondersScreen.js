@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { STORAGE_KEYS } from '../constants/gameConfig';
 import { SEVEN_WONDERS_COLORS as PLAYER_COLORS } from '../constants/colors';
@@ -17,8 +18,9 @@ const DEFAULT_PLAYER_DATA = {
   commerce: 0, guilds: 0, science: { compass: 0, gear: 0, tablet: 0 },
 };
 
-export default function SevenWondersScreen() {
+export default function SevenWondersScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { isPremium } = useSubscription();
   const room = useRoom('SevenWonders');
   const [showRoomLobby, setShowRoomLobby] = useState(false);
 
@@ -53,13 +55,18 @@ export default function SevenWondersScreen() {
   };
 
   // Derive display players
+  const onlineColorMap = room.isOnline
+    ? [...room.players]
+        .sort((a, b) => (a.joinedAt?.seconds ?? 0) - (b.joinedAt?.seconds ?? 0))
+        .reduce((acc, p, i) => ({ ...acc, [p.id]: PLAYER_COLORS[i % PLAYER_COLORS.length] }), {})
+    : {};
   const players = room.isOnline
     ? [...room.players]
         .sort((a, b) => (b.id === room.userId ? 1 : 0) - (a.id === room.userId ? 1 : 0))
-        .map((p, i) => ({
+        .map((p) => ({
           id: p.id,
           name: p.displayName,
-          color: PLAYER_COLORS[i % PLAYER_COLORS.length],
+          color: onlineColorMap[p.id],
           military: p.playerData?.military ?? 0,
           treasury: p.playerData?.treasury ?? 0,
           wonder: p.playerData?.wonder ?? 0,
@@ -89,8 +96,18 @@ export default function SevenWondersScreen() {
       }
     };
     loadData();
+    if (route.params?.joinRoomOnly && !isPremium) {
+      setShowRoomLobby(true);
+    }
     return () => { room.deleteRoom(); };
   }, []);
+
+  const handleCloseLobby = () => {
+    setShowRoomLobby(false);
+    if (route.params?.joinRoomOnly && !room.isOnline) {
+      navigation.goBack();
+    }
+  };
 
   useEffect(() => {
     if (room.isOnline) return;
@@ -497,7 +514,7 @@ export default function SevenWondersScreen() {
 
       <RoomLobby
         visible={showRoomLobby}
-        onClose={() => setShowRoomLobby(false)}
+        onClose={handleCloseLobby}
         room={room}
         gameType="SevenWonders"
       />

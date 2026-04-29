@@ -25,6 +25,8 @@ import PlayerSelectorScreen from './screens/PlayerSelectorScreen';
 import Magic8BallScreen from './screens/Magic8BallScreen';
 import TicTacToeScreen from './screens/TicTacToeScreen';
 import WordGuessScreen from './screens/WordGuessScreen';
+import RockPaperScissorsScreen from './screens/RockPaperScissorsScreen';
+import YahtzeeScreen from './screens/YahtzeeScreen';
 
 const Tab = createBottomTabNavigator();
 const GamesStack = createNativeStackNavigator();
@@ -108,6 +110,16 @@ function GamesStackNavigator() {
         name="WordGuess"
         component={WordGuessScreen}
         options={{ title: 'Word Guess' }}
+      />
+      <GamesStack.Screen
+        name="RockPaperScissors"
+        component={RockPaperScissorsScreen}
+        options={{ title: 'Rock Paper Scissors' }}
+      />
+      <GamesStack.Screen
+        name="Yahtzee"
+        component={YahtzeeScreen}
+        options={{ title: 'Yahtzee' }}
       />
     </GamesStack.Navigator>
   );

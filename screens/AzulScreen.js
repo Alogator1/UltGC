@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert,
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
+import { useSubscription } from '../context/SubscriptionContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
@@ -44,8 +45,9 @@ const flatToWall = (flat) => {
   return [flat.slice(0,5), flat.slice(5,10), flat.slice(10,15), flat.slice(15,20), flat.slice(20,25)];
 };
 
-export default function AzulScreen() {
+export default function AzulScreen({ navigation, route }) {
   const { theme } = useTheme();
+  const { isPremium } = useSubscription();
   const room = useRoom('Azul');
   const [showRoomLobby, setShowRoomLobby] = useState(false);
 
@@ -79,13 +81,18 @@ export default function AzulScreen() {
     : currentRound;
 
   // Derive display players
+  const onlineColorMap = room.isOnline
+    ? [...room.players]
+        .sort((a, b) => (a.joinedAt?.seconds ?? 0) - (b.joinedAt?.seconds ?? 0))
+        .reduce((acc, p, i) => ({ ...acc, [p.id]: PLAYER_COLORS[i % PLAYER_COLORS.length] }), {})
+    : {};
   const players = room.isOnline
     ? [...room.players]
         .sort((a, b) => (b.id === room.userId ? 1 : 0) - (a.id === room.userId ? 1 : 0))
-        .map((p, i) => ({
+        .map((p) => ({
           id: p.id,
           name: p.displayName,
-          color: PLAYER_COLORS[i % PLAYER_COLORS.length],
+          color: onlineColorMap[p.id],
           score: p.playerData?.score ?? 0,
           wall: flatToWall(p.playerData?.wall),
           floorTiles: p.playerData?.floorTiles ?? 0,
@@ -110,8 +117,18 @@ export default function AzulScreen() {
       }
     };
     loadData();
+    if (route.params?.joinRoomOnly && !isPremium) {
+      setShowRoomLobby(true);
+    }
     return () => { room.deleteRoom(); };
   }, []);
+
+  const handleCloseLobby = () => {
+    setShowRoomLobby(false);
+    if (route.params?.joinRoomOnly && !room.isOnline) {
+      navigation.goBack();
+    }
+  };
 
   useEffect(() => {
     if (room.isOnline) return;
@@ -593,7 +610,7 @@ export default function AzulScreen() {
         </View>
       </Modal>
 
-      <RoomLobby visible={showRoomLobby} onClose={() => setShowRoomLobby(false)} room={room} gameType="Azul" />
+      <RoomLobby visible={showRoomLobby} onClose={handleCloseLobby} room={room} gameType="Azul" />
     </View>
   );
 }
