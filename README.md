@@ -4,12 +4,13 @@ A React Native Expo app for managing and playing various board games with friend
 
 ## Features
 
-- 🎮 **12 Game Utilities:**
+- 🎮 **17 Game Utilities:**
   - 👆 **Player Selector** - Random player selection tool
   - 🔮 **Fortune Orb** (Magic 8 Ball) - Get answers to your questions
   - 🔢 **Counter** - Simple +/- score counter
   - 🎲 **Dice Roller** - Multi-dice roller with history
-  - ⭕ **Tic Tac Toe** - Classic strategy game
+  - ⭕ **Tic Tac Toe** - Classic strategy game vs AI or online
+  - 🪨 **Rock Paper Scissors** - Quick battle game vs AI or online
   - 🏝️ **Catan** - Victory points, dice rolling, longest road tracking
   - ⚔️ **Munchkin** - Level, gear, and battle calculator
   - 🏛️ **7 Wonders** - Complete scoring system for all categories
@@ -17,8 +18,12 @@ A React Native Expo app for managing and playing various board games with friend
   - 🎴 **UNO** - Round-based cumulative scoring
   - 🎨 **Azul** - Tile placement + floor penalties
   - 🎯 **Word Guess** - Timed team word-guessing
+  - 🎲 **Five Dice (Yahtzee)** - Roll five dice and score 13 categories
+  - 🚢 **Sea Battle** - Place your fleet and sink the enemy
+  - 🔴 **Four in a Line** - Connect four in a row vs AI or online
+  - 🦅 **Wingspan** - Score tracker for the bird-collecting game
 - 🌐 **Online Multiplayer** - Play games with friends remotely using Firebase
-- 🎉 **Free to Use** - First 5 games are completely free
+- 🎉 **Free to Use** - First 6 games are completely free
 - 💳 **Premium Subscription** - Unlock all games and remove ads
 - 📱 Cross-platform (iOS, Android, Web)
 - 🎨 Dark/Light theme support
@@ -60,7 +65,7 @@ UltGC/
 │   └── SubscriptionContext.js # Premium subscription state
 ├── hooks/                    # Custom React hooks
 │   └── useRoom.js            # Online room management
-├── screens/                  # Screen components (15 total)
+├── screens/                  # Screen components (18 total)
 │   ├── GamesScreen.js        # Home — searchable game list
 │   ├── SettingsScreen.js     # Theme toggle, premium toggle
 │   ├── FAQScreen.js          # Accordion FAQ
@@ -69,13 +74,18 @@ UltGC/
 │   ├── PlayerSelectorScreen.js # Multi-touch random selector
 │   ├── Magic8BallScreen.js   # Shake-to-reveal fortune orb
 │   ├── TicTacToeScreen.js    # Classic tic-tac-toe
+│   ├── RockPaperScissorsScreen.js # Rock paper scissors with AI
 │   ├── MunchkinScreen.js     # Battle calculator
 │   ├── TicketToRideScreen.js # Route-based scoring
 │   ├── CatanScreen.js        # Victory point tracker
 │   ├── SevenWondersScreen.js # Full 7-category scoring
 │   ├── UnoScreen.js          # Round-based cumulative scoring
 │   ├── AzulScreen.js         # Tile placement + floor penalties
-│   └── WordGuessScreen.js    # Timed team word-guessing
+│   ├── WordGuessScreen.js    # Timed team word-guessing
+│   ├── YahtzeeScreen.js      # Five dice rolling and scoring
+│   ├── SeaBattleScreen.js    # Naval strategy game
+│   ├── FourInALineScreen.js  # Connect four game
+│   └── WingspanScreen.js     # Bird game score tracking
 ├── utils/                    # Utility functions
 │   ├── ads.js                # Interstitial ad helpers
 │   └── roomCode.js           # Room code generation
