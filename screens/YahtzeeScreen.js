@@ -9,6 +9,7 @@ import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
+import GameHeader from '../components/GameHeader';
 
 // ── Scoring categories ─────────────────────────────────────────────────────────
 
@@ -27,7 +28,7 @@ const LOWER_CATS = [
   { id: 'fullHouse',    label: 'Full House',      hint: '25 points' },
   { id: 'smStraight',   label: 'Small Straight',  hint: '30 points' },
   { id: 'lgStraight',   label: 'Large Straight',  hint: '40 points' },
-  { id: 'yahtzee',      label: 'YAHTZEE!',        hint: '50 points' },
+  { id: 'yahtzee',      label: 'FIVE OF A KIND!', hint: '50 points' },
   { id: 'chance',       label: 'Chance',          hint: 'Sum of all dice' },
 ];
 
@@ -114,7 +115,7 @@ function freshDice() {
 export default function YahtzeeScreen({ navigation, route }) {
   const { theme } = useTheme();
   const { isPremium } = useSubscription();
-  const room = useRoom('Yahtzee');
+  const room = useRoom('FiveDice');
   const [showRoomLobby, setShowRoomLobby] = useState(false);
 
   // ── Offline: single-player scorecard ─────────────────────────────────────────
@@ -386,29 +387,24 @@ export default function YahtzeeScreen({ navigation, route }) {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
 
-      {/* Header */}
-      <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>🎲 Yahtzee</Text>
-        <View style={styles.headerActions}>
-          {!room.isOnline && (
-            <TouchableOpacity
-              style={[styles.iconBtn, { backgroundColor: theme.colors.primary }]}
-              onPress={() => setShowRoomLobby(true)}
-            >
-              <Ionicons name="wifi" size={16} color="#fff" />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.iconBtn, { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }]}
-            onPress={() => Alert.alert('New Game', 'Start a new game?', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'New Game', onPress: newGame },
-            ])}
-          >
-            <Ionicons name="refresh" size={16} color={theme.colors.text} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <GameHeader
+        title="🎲 Five Dice"
+        showOnline={!room.isOnline}
+        onOnlinePress={() => setShowRoomLobby(true)}
+        style={{ paddingHorizontal: 16, paddingTop: 12, marginBottom: 12 }}
+        actions={[{
+          icon: 'refresh',
+          color: theme.colors.surface,
+          outline: true,
+          borderColor: theme.colors.border,
+          iconColor: theme.colors.text,
+          accessibilityLabel: 'Start new game',
+          onPress: () => Alert.alert('New Game', 'Start a new game?', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'New Game', onPress: newGame },
+          ]),
+        }]}
+      />
 
       {/* Online turn indicator */}
       {room.isOnline && !isWaiting && (
@@ -509,7 +505,7 @@ export default function YahtzeeScreen({ navigation, route }) {
         visible={showRoomLobby}
         onClose={handleCloseLobby}
         room={room}
-        gameType="Yahtzee"
+        gameType="FiveDice"
       />
     </View>
   );

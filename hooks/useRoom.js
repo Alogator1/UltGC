@@ -226,7 +226,7 @@ export function useRoom(gameType) {
   const updatePlayerData = useCallback(
     async (targetUserId, playerData) => {
       if (!roomCode || !userId) return;
-      if (!allCanEdit && targetUserId !== userId) return;
+      if (!isHost && !allCanEdit && targetUserId !== userId) return;
       try {
         const playerRef = doc(db, 'rooms', roomCode, 'players', targetUserId);
         await updateDoc(playerRef, { playerData, lastSeen: serverTimestamp() });
@@ -235,7 +235,7 @@ export function useRoom(gameType) {
         console.error('Error updating player data:', err);
       }
     },
-    [roomCode, userId, allCanEdit]
+    [roomCode, userId, allCanEdit, isHost]
   );
 
   // Update shared game state

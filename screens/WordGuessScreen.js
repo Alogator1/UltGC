@@ -16,6 +16,7 @@ import { useTheme } from '../context/ThemeContext';
 import { PLAYER_SELECTOR_COLORS as TEAM_COLORS } from '../constants/colors';
 import { WORD_GUESS_DEFAULTS } from '../constants/gameConfig';
 import wordsData from '../constants/words.json';
+import GameHeader from '../components/GameHeader';
 
 const SWIPE_THRESHOLD = 80;
 
@@ -353,9 +354,7 @@ export default function WordGuessScreen() {
   // Render setup screen
   const renderSetup = () => (
     <ScrollView contentContainerStyle={styles.scrollContent}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Word Guess</Text>
-      </View>
+      <GameHeader title="Word Guess" />
 
       <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Teams</Text>
 

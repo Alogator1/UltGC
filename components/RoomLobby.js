@@ -10,6 +10,8 @@ import {
   Alert,
   Share,
   Switch,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
@@ -80,6 +82,10 @@ export default function RoomLobby({ visible, onClose, room, gameType }) {
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <View style={[styles.container, { backgroundColor: theme.colors.overlay }]}>
         <View
           style={[
@@ -347,6 +353,7 @@ export default function RoomLobby({ visible, onClose, room, gameType }) {
           )}
         </View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

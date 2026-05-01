@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Animated, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
@@ -10,6 +9,7 @@ import { ROUTE_POINTS } from '../constants/gameConfig';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
+import GameHeader from '../components/GameHeader';
 
 export default function TicketToRideScreen({ navigation, route }) {
   const { theme } = useTheme();
@@ -305,26 +305,12 @@ export default function TicketToRideScreen({ navigation, route }) {
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Ticket to Ride Scorer</Text>
-          <View style={styles.headerRow}>
-            {!room.isOnline && (
-              <TouchableOpacity
-                style={[styles.iconBtn, { backgroundColor: theme.colors.primary }]}
-                onPress={() => setShowRoomLobby(true)}
-              >
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[styles.resetButton, { backgroundColor: theme.colors.danger }]}
-              onPress={resetGame}
-            >
-              <Text style={styles.resetButtonText}>Reset Game</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <GameHeader
+          title="Ticket to Ride"
+          showOnline={!room.isOnline}
+          onOnlinePress={() => setShowRoomLobby(true)}
+          actions={[{ label: 'Reset', color: theme.colors.danger, onPress: resetGame }]}
+        />
 
         {/* Players */}
         <View style={styles.playersSection}>

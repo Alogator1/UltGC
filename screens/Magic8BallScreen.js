@@ -8,6 +8,7 @@ import {
   Vibration,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import GameHeader from '../components/GameHeader';
 
 // Try to import Accelerometer, but handle gracefully if unavailable
 let Accelerometer = null;
@@ -49,20 +50,19 @@ export default function Magic8BallScreen() {
   const { theme } = useTheme();
   const [answer, setAnswer] = useState(null);
   const [isShaking, setIsShaking] = useState(false);
-  const [subscription, setSubscription] = useState(null);
 
   const orbScale = useRef(new Animated.Value(1)).current;
   const glowOpacity = useRef(new Animated.Value(0.3)).current;
   const answerOpacity = useRef(new Animated.Value(0)).current;
   const lastShakeTime = useRef(0);
+  const subscriptionRef = useRef(null);
 
   useEffect(() => {
     startAccelerometer();
     startGlowAnimation();
     return () => {
-      if (subscription) {
-        subscription.remove();
-      }
+      subscriptionRef.current?.remove();
+      subscriptionRef.current = null;
     };
   }, []);
 
@@ -102,7 +102,7 @@ export default function Magic8BallScreen() {
           }
         }
       });
-      setSubscription(sub);
+      subscriptionRef.current = sub;
     } catch (e) {
       // Accelerometer not available
       console.log('Accelerometer not available:', e);
@@ -159,9 +159,7 @@ export default function Magic8BallScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Text style={[styles.title, { color: theme.colors.text }]}>
-        Fortune Orb
-      </Text>
+      <GameHeader title="Fortune Orb" style={{ width: '88%' }} />
 
       <Text style={[styles.instructions, { color: theme.colors.textSecondary }]}>
         {Accelerometer ? 'Shake your phone or tap the orb' : 'Tap the orb to reveal your fortune'}

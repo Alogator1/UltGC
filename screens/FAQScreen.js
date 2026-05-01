@@ -20,17 +20,24 @@ export default function FAQScreen() {
       <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
         <Text style={[styles.question, { color: theme.colors.primary }]}>What games are supported?</Text>
         <Text style={[styles.answer, { color: theme.colors.text }]}>
-          Currently supports 10 games:{'\n'}
+          Currently supports 17 games:{'\n'}
           • Player Selector - Random player selection tool{'\n'}
           • Fortune Orb (Magic 8 Ball) - Get answers to your questions{'\n'}
           • Counter - Simple score tracking{'\n'}
           • Dice Roller - Multi-dice roller with history{'\n'}
+          • Tic Tac Toe - Classic strategy game with AI opponent{'\n'}
+          • Rock Paper Scissors - Quick battle game{'\n'}
           • Catan - Victory points, dice rolling, longest road{'\n'}
           • Munchkin - Level, gear, and battle calculator{'\n'}
           • 7 Wonders - Complete scoring system{'\n'}
           • Ticket to Ride - Route and destination tracking{'\n'}
           • UNO - Round-based score tracking{'\n'}
-          • Azul - Wall tiling, floor penalties, end game bonuses
+          • Azul - Wall tiling, floor penalties, end game bonuses{'\n'}
+          • Word Guess - Timed team word-guessing game{'\n'}
+          • Five Dice - Roll five dice and score 13 categories{'\n'}
+          • Sea Battle - Place your fleet and sink the AI's ships{'\n'}
+          • Four in a Line - Drop discs to connect four in a row vs AI or a friend{'\n'}
+          • Wingspan - Score tracker for the bird-collecting board game
         </Text>
       </View>
 
@@ -80,7 +87,7 @@ export default function FAQScreen() {
       <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
         <Text style={[styles.question, { color: theme.colors.primary }]}>How do I clear all saved data?</Text>
         <Text style={[styles.answer, { color: theme.colors.text }]}>
-          Use the "Clear Data" tab at the bottom of the app. This will remove all saved game data
+          Go to the Settings tab and tap "Clear All Game Data". This will remove all saved game data
           across all games. This action cannot be undone, so use it carefully!
         </Text>
       </View>
@@ -88,12 +95,14 @@ export default function FAQScreen() {
       <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
         <Text style={[styles.question, { color: theme.colors.primary }]}>Is this app free?</Text>
         <Text style={[styles.answer, { color: theme.colors.text }]}>
-          Yes! The app is free with ads. The first 4 games are completely free to use.{' \n\n'}
-          Free users get:{' \n'}
-          • Player Selector{' \n'}
-          • Fortune Orb{' \n'}
-          • Counter{' \n'}
-          • Dice Roller{' \n\n'}
+          Yes! The app is free with ads. The first 6 games are completely free to use.{'\n\n'}
+          Free users get:{'\n'}
+          • Player Selector{'\n'}
+          • Fortune Orb{'\n'}
+          • Counter{'\n'}
+          • Dice Roller{'\n'}
+          • Tic Tac Toe{'\n'}
+          • Rock Paper Scissors{'\n\n'}
           Banner ads are displayed at the bottom of screens, and occasional interstitial ads may appear.
         </Text>
       </View>
@@ -101,12 +110,41 @@ export default function FAQScreen() {
       <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
         <Text style={[styles.question, { color: theme.colors.primary }]}>What does Premium subscription include?</Text>
         <Text style={[styles.answer, { color: theme.colors.text }]}>
-          Premium subscription unlocks:{' \n'}
-          • All 10 games (Catan, Munchkin, 7 Wonders, Ticket to Ride, UNO, Azul){' \n'}
-          • No banner ads{' \n'}
-          • No interstitial ads{' \n'}
-          • Support ongoing development{' \n\n'}
-          You can subscribe in the Settings screen. Premium is an optional one-time or recurring purchase.
+          Premium subscription unlocks:{'\n'}
+          • All 17 games (Catan, Munchkin, 7 Wonders, Ticket to Ride, UNO, Azul, Word Guess, Five Dice, Sea Battle, Four in a Line, Wingspan){'\n'}
+          • No banner ads{'\n'}
+          • No interstitial ads{'\n'}
+          • Online multiplayer room creation{'\n'}
+          • Support ongoing development{'\n\n'}
+          You can subscribe in the Settings screen. If the subscription button is not working, use the "Enable Premium Manually" toggle in Settings as a workaround.
+        </Text>
+      </View>
+
+      <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
+        <Text style={[styles.question, { color: theme.colors.primary }]}>How do I cancel my subscription?</Text>
+        <Text style={[styles.answer, { color: theme.colors.text }]}>
+          Tap "Manage Subscription" in the Settings screen. This opens Apple's subscription management page where you can cancel or modify your subscription at any time.{'\n\n'}
+          Cancellations take effect at the end of the current billing period. Your premium access continues until then.
+        </Text>
+      </View>
+
+      <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
+        <Text style={[styles.question, { color: theme.colors.primary }]}>How does online multiplayer work?</Text>
+        <Text style={[styles.answer, { color: theme.colors.text }]}>
+          Several games support real-time online play via game rooms:{'\n\n'}
+          • Premium users can create a room and share the 4-character code with friends{'\n'}
+          • Anyone (free or premium) can join a room using a code{'\n'}
+          • All players see score and game state updates instantly{'\n'}
+          • The host controls the game flow by default. Enable "Everyone Can Edit" in the room lobby to let all players make changes{'\n\n'}
+          Tap the Wi-Fi icon in any supported game to open the room lobby. Supported games: Counter, Dice Roller, Tic Tac Toe, Rock Paper Scissors, Catan, Munchkin, 7 Wonders, Ticket to Ride, UNO, Azul, and Five Dice.
+        </Text>
+      </View>
+
+      <View style={[styles.faqItem, { backgroundColor: theme.colors.card }]}>
+        <Text style={[styles.question, { color: theme.colors.primary }]}>Does the app follow my phone's dark mode?</Text>
+        <Text style={[styles.answer, { color: theme.colors.text }]}>
+          Yes! On first launch, the app automatically matches your phone's system appearance (light or dark).{'\n\n'}
+          You can override this at any time by toggling "Dark Mode" in the Settings screen. Your preference is saved and will be used on all future launches.
         </Text>
       </View>
 

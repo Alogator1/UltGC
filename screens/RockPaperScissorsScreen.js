@@ -6,6 +6,7 @@ import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
 import AdBanner from '../components/AdBanner';
+import GameHeader from '../components/GameHeader';
 
 const CHOICES = [
   { id: 'rock', emoji: '🪨', label: 'Rock' },
@@ -197,26 +198,12 @@ export default function RockPaperScissorsScreen() {
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
 
       <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Rock Paper Scissors</Text>
-          <View style={styles.headerActions}>
-            {!room.isOnline && (
-              <TouchableOpacity
-                style={[styles.iconBtn, { backgroundColor: theme.colors.primary }]}
-                onPress={() => setShowRoomLobby(true)}
-              >
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[styles.resetBtn, { backgroundColor: theme.colors.danger }]}
-              onPress={resetGame}
-            >
-              <Text style={styles.resetBtnText}>Reset</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <GameHeader
+          title="Rock Paper Scissors"
+          showOnline={!room.isOnline}
+          onOnlinePress={() => setShowRoomLobby(true)}
+          actions={[{ label: 'Reset', color: theme.colors.danger, onPress: resetGame }]}
+        />
 
         {/* Round + Scoreboard */}
         <Text style={[styles.roundText, { color: theme.colors.textSecondary }]}>Round {currentRound}</Text>

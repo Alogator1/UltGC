@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import AdBanner from '../components/AdBanner';
@@ -7,6 +7,7 @@ import { INITIAL_TIC_TAC_TOE_BOARD as INITIAL_BOARD } from '../constants/gameCon
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
+import GameHeader from '../components/GameHeader';
 
 const EMPTY_SCORES = { X: 0, O: 0, draws: 0 };
 
@@ -134,13 +135,14 @@ export default function TicTacToeScreen() {
       const newWinner = calculateWinner(newBoard);
       const newDraw   = !newWinner && newBoard.every((c) => c !== null);
 
+      const nextXId = room.players.find((p) => p.id !== onlineXPlayer)?.id ?? onlineXPlayer;
       if (newWinner) {
         const newScores = { ...onlineScores, [newWinner]: onlineScores[newWinner] + 1 };
         room.updateSharedState({
           board: Array(9).fill(null),
           isXNext: true,
           scores: newScores,
-          xPlayerId: onlineXPlayer,
+          xPlayerId: nextXId,
           lastResult: { type: 'win', winner: newWinner, at: Date.now() },
         });
       } else if (newDraw) {
@@ -149,7 +151,7 @@ export default function TicTacToeScreen() {
           board: Array(9).fill(null),
           isXNext: true,
           scores: newScores,
-          xPlayerId: onlineXPlayer,
+          xPlayerId: nextXId,
           lastResult: { type: 'draw', winner: null, at: Date.now() },
         });
       } else {
@@ -174,11 +176,12 @@ export default function TicTacToeScreen() {
   const resetBoard = () => {
     if (room.isOnline) {
       if (!room.isHost && !room.allCanEdit) return;
+      const nextXId = room.players.find((p) => p.id !== onlineXPlayer)?.id ?? onlineXPlayer;
       room.updateSharedState({
         board: Array(9).fill(null),
         isXNext: true,
         scores: onlineScores,
-        xPlayerId: onlineXPlayer,
+        xPlayerId: nextXId,
         lastResult: null,
       });
     } else {
@@ -268,35 +271,24 @@ export default function TicTacToeScreen() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
 
-      <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>⭕ Tic Tac Toe</Text>
-          <View style={styles.headerActions}>
-            {!room.isOnline && (
-              <TouchableOpacity
-                style={[styles.iconBtn, { backgroundColor: vsAI ? theme.colors.warning : theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border }]}
-                onPress={toggleVsAI}
-              >
-                <Text style={{ fontSize: 16 }}>🤖</Text>
-              </TouchableOpacity>
-            )}
-            {!room.isOnline && (
-              <TouchableOpacity
-                style={[styles.iconBtn, { backgroundColor: theme.colors.primary }]}
-                onPress={() => setShowRoomLobby(true)}
-              >
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[styles.resetButton, { backgroundColor: theme.colors.danger }]}
-              onPress={resetGame}
-            >
-              <Text style={styles.resetButtonText}>Reset</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <GameHeader
+          title="⭕ Tic Tac Toe"
+          showOnline={!room.isOnline}
+          onOnlinePress={() => setShowRoomLobby(true)}
+          actions={[
+            !room.isOnline && {
+              icon: 'hardware-chip-outline',
+              color: vsAI ? theme.colors.warning : theme.colors.surface,
+              outline: true,
+              borderColor: theme.colors.border,
+              iconColor: vsAI ? '#fff' : theme.colors.text,
+              onPress: toggleVsAI,
+              accessibilityLabel: 'Toggle AI opponent',
+            },
+            { label: 'Reset', color: theme.colors.danger, onPress: resetGame },
+          ].filter(Boolean)}
+        />
 
         {/* AI difficulty selector */}
         {vsAI && !room.isOnline && (
@@ -397,7 +389,7 @@ export default function TicTacToeScreen() {
             <Text style={styles.buttonText}>New Game</Text>
           </TouchableOpacity>
         )}
-      </View>
+      </ScrollView>
 
       <AdBanner />
 
@@ -504,10 +496,9 @@ function getAIMove(board, aiSym, humanSym, difficulty) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: {
-    flex: 1,
     padding: 15,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingBottom: 24,
   },
   header: {
     flexDirection: 'row',

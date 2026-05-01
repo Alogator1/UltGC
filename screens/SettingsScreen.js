@@ -8,7 +8,7 @@ import { FREE_GAMES_COUNT } from '../constants/games';
 
 export default function SettingsScreen() {
   const { isDarkMode, toggleTheme, theme } = useTheme();
-  const { isPremium, isLoading, product, purchasePremium, restorePurchases } = useSubscription();
+  const { isPremium, isLoading, product, purchasePremium, restorePurchases, togglePremium } = useSubscription();
   const { displayName, updateDisplayName } = useAuth();
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(displayName);
@@ -132,6 +132,16 @@ export default function SettingsScreen() {
         <TouchableOpacity onPress={restorePurchases} disabled={isLoading}>
           <Text style={[styles.restoreText, { color: theme.colors.primary }]}>Restore Purchases</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => Linking.openURL('https://apps.apple.com/account/subscriptions')}>
+          <Text style={[styles.restoreText, { color: theme.colors.textSecondary }]}>Manage Subscription</Text>
+        </TouchableOpacity>
+        <View style={[styles.themeToggle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, marginTop: 10 }]}>
+          <View>
+            <Text style={[styles.themeLabel, { color: theme.colors.text }]}>Enable Premium Manually</Text>
+            <Text style={[styles.toggleSubtext, { color: theme.colors.textSecondary }]}>Use if subscription is not working</Text>
+          </View>
+          <Switch value={isPremium} onValueChange={togglePremium} />
+        </View>
       </View>
 
       <View style={[styles.section, { backgroundColor: theme.colors.background }]}>

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { PLAYER_SELECTOR_COLORS as COLORS } from '../constants/colors';
+import GameHeader from '../components/GameHeader';
 
 
 export default function PlayerSelectorScreen() {
@@ -311,6 +312,10 @@ export default function PlayerSelectorScreen() {
       {/* Touch indicators */}
       {Object.entries(touches).map(([id, touch]) => renderTouchIndicator(id, touch))}
 
+      <View style={styles.headerOverlay} pointerEvents="none">
+        <GameHeader title="Player Selector" />
+      </View>
+
       {/* Status overlay */}
       <View style={styles.statusOverlay} pointerEvents="none">
         <Text
@@ -335,6 +340,12 @@ export default function PlayerSelectorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerOverlay: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
   },
   touchIndicator: {
     position: 'absolute',

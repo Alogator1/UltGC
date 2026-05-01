@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
+import GameHeader from '../components/GameHeader';
 
 export default function UnoScreen({ navigation, route }) {
   const { theme } = useTheme();
@@ -296,14 +296,11 @@ export default function UnoScreen({ navigation, route }) {
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.setupHeader}>
-            <Text style={styles.title}>UNO Score Tracker</Text>
-            {!room.isOnline && (
-              <TouchableOpacity style={[styles.onlineBtn, { backgroundColor: theme.colors.primary }]} onPress={() => setShowRoomLobby(true)}>
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-          </View>
+          <GameHeader
+            title="UNO"
+            showOnline={!room.isOnline}
+            onOnlinePress={() => setShowRoomLobby(true)}
+          />
 
           <View style={[styles.setupSection, { backgroundColor: theme.colors.card }]}>
             <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Game Setup</Text>
@@ -415,24 +412,13 @@ export default function UnoScreen({ navigation, route }) {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>UNO - Round {effectiveCurrentRound}</Text>
-            <Text style={[styles.subtitle, { color: theme.colors.textSecondary }]}>
-              {effectiveWinCondition === 'lowest' ? 'Lowest' : 'Highest'} score wins • Target: {effectiveTargetScore}
-            </Text>
-          </View>
-          <View style={styles.headerRight}>
-            {!room.isOnline && (
-              <TouchableOpacity style={[styles.onlineBtn, { backgroundColor: theme.colors.primary }]} onPress={() => setShowRoomLobby(true)}>
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.colors.danger }]} onPress={resetGame}>
-              <Text style={styles.resetButtonText}>Reset</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <GameHeader
+          title="UNO"
+          subtitle={`Round ${effectiveCurrentRound} • ${effectiveWinCondition === 'lowest' ? 'Lowest' : 'Highest'} score wins • Target: ${effectiveTargetScore}`}
+          showOnline={!room.isOnline}
+          onOnlinePress={() => setShowRoomLobby(true)}
+          actions={[{ label: 'Reset', color: theme.colors.danger, onPress: resetGame }]}
+        />
 
         <View style={[styles.tableContainer, { backgroundColor: theme.colors.card }]}>
           <View style={styles.tableHeader}>

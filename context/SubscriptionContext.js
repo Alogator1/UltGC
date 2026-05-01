@@ -38,6 +38,16 @@ export const SubscriptionProvider = ({ children }) => {
         const cached = await AsyncStorage.getItem('isPremium');
         if (cached === 'true') setIsPremium(true);
 
+        // Verify against store so cancelled subs are detected on launch
+        try {
+          const activeSubs = await getActiveSubscriptions([PRODUCT_ID]);
+          if (activeSubs.length > 0) {
+            const active = activeSubs.some((s) => s.productId === PRODUCT_ID && s.isActive);
+            setIsPremium(active);
+            await AsyncStorage.setItem('isPremium', String(active));
+          }
+        } catch (_) {}
+
         // Fetch product info (v15: fetchProducts with type)
         const products = await fetchProducts({ skus: [PRODUCT_ID], type: 'subs' });
         if (products.length > 0) setProduct(products[0]);
@@ -113,8 +123,14 @@ export const SubscriptionProvider = ({ children }) => {
     }
   };
 
+  const togglePremium = async () => {
+    const next = !isPremium;
+    setIsPremium(next);
+    await AsyncStorage.setItem('isPremium', String(next));
+  };
+
   return (
-    <SubscriptionContext.Provider value={{ isPremium, isLoading, product, purchasePremium, restorePurchases }}>
+    <SubscriptionContext.Provider value={{ isPremium, isLoading, product, purchasePremium, restorePurchases, togglePremium }}>
       {children}
     </SubscriptionContext.Provider>
   );

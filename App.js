@@ -27,6 +27,9 @@ import TicTacToeScreen from './screens/TicTacToeScreen';
 import WordGuessScreen from './screens/WordGuessScreen';
 import RockPaperScissorsScreen from './screens/RockPaperScissorsScreen';
 import YahtzeeScreen from './screens/YahtzeeScreen';
+import SeaBattleScreen from './screens/SeaBattleScreen';
+import FourInALineScreen from './screens/FourInALineScreen';
+import WingspanScreen from './screens/WingspanScreen';
 
 const Tab = createBottomTabNavigator();
 const GamesStack = createNativeStackNavigator();
@@ -117,9 +120,24 @@ function GamesStackNavigator() {
         options={{ title: 'Rock Paper Scissors' }}
       />
       <GamesStack.Screen
-        name="Yahtzee"
+        name="FiveDice"
         component={YahtzeeScreen}
-        options={{ title: 'Yahtzee' }}
+        options={{ title: 'Five Dice' }}
+      />
+      <GamesStack.Screen
+        name="SeaBattle"
+        component={SeaBattleScreen}
+        options={{ title: 'Sea Battle' }}
+      />
+      <GamesStack.Screen
+        name="FourInALine"
+        component={FourInALineScreen}
+        options={{ title: 'Four in a Line' }}
+      />
+      <GamesStack.Screen
+        name="Wingspan"
+        component={WingspanScreen}
+        options={{ title: 'Wingspan' }}
       />
     </GamesStack.Navigator>
   );

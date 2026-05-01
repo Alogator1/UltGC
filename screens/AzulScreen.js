@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import { useSubscription } from '../context/SubscriptionContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
+import GameHeader from '../components/GameHeader';
 
 const STORAGE_KEY = 'azulGameData';
 const PLAYER_COLORS = ['#E74C3C', '#3498DB', '#2ECC71', '#F39C12'];
@@ -380,20 +380,13 @@ export default function AzulScreen({ navigation, route }) {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>🎨 Azul Scorer</Text>
-          <Text style={[styles.roundText, { color: theme.colors.textSecondary }]}>Round {effectiveCurrentRound}</Text>
-          <View style={styles.headerButtons}>
-            {!room.isOnline && (
-              <TouchableOpacity style={[styles.onlineBtn, { backgroundColor: theme.colors.primary }]} onPress={() => setShowRoomLobby(true)}>
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={[styles.resetButton, { backgroundColor: theme.colors.danger }]} onPress={resetGame}>
-              <Text style={styles.resetButtonText}>Reset Game</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <GameHeader
+          title="🎨 Azul"
+          subtitle={`Round ${effectiveCurrentRound}`}
+          showOnline={!room.isOnline}
+          onOnlinePress={() => setShowRoomLobby(true)}
+          actions={[{ label: 'Reset', color: theme.colors.danger, onPress: resetGame }]}
+        />
 
         <View style={styles.playersSection}>
           {players.map((player) => (

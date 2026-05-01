@@ -82,9 +82,27 @@ export const GAMES = [
     supportsOnline: false,
   },
   {
-    name: '🎲 Yahtzee',
+    name: '🎲 Five Dice',
     description: 'Roll five dice up to three times and score 13 categories to win',
-    route: 'Yahtzee',
+    route: 'FiveDice',
+    supportsOnline: true,
+  },
+  {
+    name: '🚢 Sea Battle',
+    description: 'Place your fleet and sink the enemy - classic naval strategy game vs AI or online',
+    route: 'SeaBattle',
+    supportsOnline: true,
+  },
+  {
+    name: '🔴 Four in a Line',
+    description: 'Drop discs into the grid - connect four in a row vs AI, a friend, or online',
+    route: 'FourInALine',
+    supportsOnline: true,
+  },
+  {
+    name: '🦅 Wingspan',
+    description: 'Score tracker for the bird-collecting board game - local or online',
+    route: 'Wingspan',
     supportsOnline: true,
   },
 ];

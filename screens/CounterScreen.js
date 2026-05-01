@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import { DEFAULT_PLAYER_NAMES } from '../constants/playerNames';
 import { STORAGE_KEYS, AUTO_SAVE_TIMEOUT } from '../constants/gameConfig';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
+import GameHeader from '../components/GameHeader';
 
 const STORAGE_KEY = STORAGE_KEYS.COUNTER;
 
@@ -163,22 +163,12 @@ export default function CounterScreen() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>Score Counter</Text>
-            {!room.isOnline && (
-              <TouchableOpacity
-                style={[styles.onlineButton, { backgroundColor: theme.colors.primary }]}
-                onPress={() => setShowRoomLobby(true)}
-              >
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity style={styles.resetButton} onPress={resetScores}>
-            <Text style={styles.resetButtonText}>Reset Scores</Text>
-          </TouchableOpacity>
-        </View>
+        <GameHeader
+          title="Counter"
+          showOnline={!room.isOnline}
+          onOnlinePress={() => setShowRoomLobby(true)}
+          actions={[{ label: 'Reset', color: theme.colors.danger, onPress: resetScores }]}
+        />
 
         <View style={styles.playersSection}>
           {players.map((player) => (

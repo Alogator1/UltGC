@@ -8,6 +8,7 @@ import { DICE_TYPES } from '../constants/gameConfig';
 import { useRoom } from '../hooks/useRoom';
 import RoomLobby from '../components/RoomLobby';
 import OnlineBanner from '../components/OnlineBanner';
+import GameHeader from '../components/GameHeader';
 
 // Count how many of each dice type a player has selected
 function countsByType(dice) {
@@ -272,26 +273,12 @@ export default function DiceRollerScreen() {
       <OnlineBanner room={room} onPress={() => setShowRoomLobby(true)} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.primary }]}>Dice Roller</Text>
-          <View style={styles.headerActions}>
-            {!room.isOnline && (
-              <TouchableOpacity
-                style={[styles.iconBtn, { backgroundColor: theme.colors.primary }]}
-                onPress={() => setShowRoomLobby(true)}
-              >
-                <Ionicons name="wifi" size={16} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              style={[styles.iconBtn, { backgroundColor: theme.colors.danger }]}
-              onPress={clearAllRolls}
-            >
-              <Ionicons name="trash-outline" size={16} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <GameHeader
+          title="Dice Roller"
+          showOnline={!room.isOnline}
+          onOnlinePress={() => setShowRoomLobby(true)}
+          actions={[{ icon: 'trash-outline', color: theme.colors.danger, onPress: clearAllRolls, accessibilityLabel: 'Clear rolls' }]}
+        />
 
         {/* Roll all — hidden in online mode when only the user can edit their own dice */}
         {(!room.isOnline || room.allCanEdit) && (
